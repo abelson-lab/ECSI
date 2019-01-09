@@ -2,7 +2,7 @@
 #'
 #' Flag alleles that are present in too many samples at high variant allele frequencies as potential errors.
 #'
-#' @param variants VRanges object from get_flagged_alleles
+#' @param variants \code{VRanges} object from get_flagged_alleles
 #' @param metadata Logical. Determine whether or not to keep the metadata (annotations) when returning flagged alleles
 #' @import VariantAnnotation
 #' @return This function returns a \code{VRanges} object with the following information:

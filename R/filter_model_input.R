@@ -2,12 +2,12 @@
 #'
 #' Filter variants to remove flagged alleles, polymorphisms, cosmic mutations, and high VAF prior to error model generation.
 #'
-#' @param model_input VRanges object annotated with mutation context and population minor allele frequency
-#' @param flagged_alleles VRanges object with high VAF alleles flagged as being present in too many samples
+#' @param model_input \code{VRanges} object annotated with mutation context and population minor allele frequency
+#' @param flagged_alleles \code{VRanges} object with high VAF alleles flagged as being present in too many samples
 #' @param MAF_cutoff Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded
 #' @param VAF_cutoff Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded
 #' @param filter_cosmic_mutations Logical indicating whether or not to filter cosmic mutations
-#' @param cosmic_mutations VRanges object with position and substitution of excluded cosmic mutations
+#' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
 #' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
 #' @import VariantAnnotation
 #' @export

@@ -2,7 +2,7 @@
 #'
 #' Filter variants to keep those that are equal to or greater than a MAPQ cutoff.
 #'
-#' @param varscan_output VRanges object of the varscan pileup2cns output
+#' @param varscan_output \code{VRanges} object of the varscan pileup2cns output
 #' @param MAPQ_cutoff Minimum acceptable MAPQ score for variants to keep
 #' @import VariantAnnotation
 #' @examples
