@@ -1,21 +1,44 @@
+#' Filter Model Input
+#'
+#' Filter variants to remove flagged alleles, polymorphisms, cosmic mutations, and high VAF prior to error model generation.
+#'
+#' @param model_input VRanges object annotated with mutation context and population minor allele frequency
+#' @param flagged_alleles VRanges object with high VAF alleles flagged as being present in too many samples
+#' @param MAF_cutoff Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded
+#' @param VAF_cutoff Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded
+#' @param filter_cosmic_mutations Logical indicating whether or not to filter cosmic mutations
+#' @param cosmic_mutations VRanges object with position and substitution of excluded cosmic mutations
+#' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
+#' @import VariantAnnotation
+#' @export
+#' @examples
+#' samp_models <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+#' @return This function returns a filtered \code{VRanges} object.
+
+### TO DO LIST:
+#	- Check input to ensure it is suitable
+#	- Provide option for flagged alleles
+
+# may have to input functions as arguments
+
 filter_model_input <-
-function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, 
+function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05,
                                filter_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 10) {
   # keep variants below MAF cutoff
   model_input <- model_input[which(model_input$AF < MAF_cutoff),]
   # keep variants below VAF cutoff
   model_input <- model_input[which(model_input$VAF < VAF_cutoff),]
-  
+
   # remove variants that overlap with flagged alleles
   model_input <- model_input[-queryHits(findOverlaps(model_input, flagged_alleles, type = "any"))]
-  
-  # if filtering cosmic mutations 
+
+  # if filtering cosmic mutations
   if(filter_cosmic_mutations == TRUE){
     # filter for frequency above 10
     cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
     # remove variants that overlap with cosmic mutations
     model_input <- model_input[-queryHits(findOverlaps(model_input, cosmic_mutations, type = "any"))]
   }
-  
+
   return(model_input)
 }
