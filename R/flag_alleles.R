@@ -4,7 +4,9 @@
 #'
 #' @param variants \code{VRanges} object from get_flagged_alleles
 #' @param metadata Logical. Determine whether or not to keep the metadata (annotations) when returning flagged alleles
-#' @import VariantAnnotation
+# @importClassesFrom VariantAnnotation VRanges
+# @importMethodsFrom S4Vectors mcols
+# @importFrom stats quantile fisher.test
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
 #'	\item seqnames
@@ -28,14 +30,14 @@ flag_alleles <-
 function(variants, metadata = FALSE){
 
   # only the VAFs without chrom / pos / ref / vaf / flanking
-  vars=as.matrix(mcols(variants))
+  vars=as.matrix(S4Vectors::mcols(variants))
 
   # remove NAs from VAF
   vars_notNA=vars[!is.na(vars)]
   varlen=length(vars_notNA)
 
   # top 95% quantile
-  Q=quantile(as.numeric(vars_notNA), seq(0.99,1,0.001))
+  Q=stats::quantile(as.numeric(vars_notNA), seq(0.99,1,0.001))
   Q=Q[-which(Q==1)]   # remove 100th percentile
 
   line=c()
@@ -63,7 +65,7 @@ function(variants, metadata = FALSE){
     while (x > 0.05) {
       n = n + 1
       print(n)
-      x = fisher.test(matrix(c(n, dim(vars)[2], sum(tab$Freq), varlen), ncol = 2), conf.int = TRUE, conf.level = 0.95)[[1]]
+      x = stats::fisher.test(matrix(c(n, dim(vars)[2], sum(tab$Freq), varlen), ncol = 2), conf.int = TRUE, conf.level = 0.95)[[1]]
     }
 
     print(n)
@@ -77,7 +79,7 @@ function(variants, metadata = FALSE){
 
   ## Remove the metadata to save memory
   if (metadata == FALSE) {
-    mcols(flagged_alleles) <- NULL
+    S4Vectors::mcols(flagged_alleles) <- NULL
   }
 
   return(flagged_alleles)

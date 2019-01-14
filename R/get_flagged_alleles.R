@@ -6,13 +6,19 @@
 #' @param exclude_cosmic_mutations Logical indicating whether or not to exclude cosmic mutations from flagged SNPs
 #' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
 #' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
-#' @import VariantAnnotation
+# @importClassesFrom VariantAnnotation VRanges SimpleVRangesList
+# @importMethodsFrom S4Vectors mcols queryHits
+# @importMethodsFrom GenomicRanges findOverlaps
+# @importMethodsFrom BiocGenerics match
 #' @export
 #' @examples
+#' \dontrun{
 #' files <- list.files(path = "./", pattern = "sample")
 #' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
 #'
-#' flagged_alleles <- get_flagged_alleles(files, exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+#' flagged_alleles <- get_flagged_alleles(files, exclude_cosmic_mutations = TRUE,
+#' cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+#' }
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
 #'	\item seqnames
@@ -23,6 +29,7 @@
 #'	\item altdepth
 #'	\item sampleNames
 #'	\item metadata (optional)
+#'	}
 
 ### TO DO LIST:
 #	- Check input to ensure it is suitable
@@ -36,7 +43,7 @@ get_flagged_alleles <-
 function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3){
 
   ### GRANGES LIST TO STORE ALL THE SAMPLES BY POSITION AND VAF
-  vrlist <- VRangesList()
+  vrlist <- VariantAnnotation::VRangesList()
 
   for(samp_path in files){
     # samp name
@@ -51,12 +58,12 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
 
   # all unique positions
   variants = unique(unlist(vrlist))
-  mcols(variants)$VAF <- NULL
+  S4Vectors::mcols(variants)$VAF <- NULL
 
   for (i in 1:length(vrlist)){
     samp_name <- names(vrlist)[i]
     samp <- vrlist[[i]]
-    mcols(variants)[match(samp, variants), samp_name] = samp$VAF
+    S4Vectors::mcols(variants)[BiocGenerics::match(samp, variants), samp_name] = samp$VAF
   }
 
   ### TAG THE FREQUENT SNPS
@@ -67,9 +74,8 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
     # filter for frequency above 3
     cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
     # removed flagged alleles overlapping with cosmic mutations
-    flagged_alleles <- flagged_alleles[-queryHits(findOverlaps(flagged_alleles, cosmic_mutations, type = "any"))]
+    flagged_alleles <- flagged_alleles[-S4Vectors::queryHits(GenomicRanges::findOverlaps(flagged_alleles, cosmic_mutations, type = "any"))]
   }
-
 
   return(flagged_alleles)
 }

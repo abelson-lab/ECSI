@@ -3,11 +3,13 @@
 #' Generate error model given a specific trinucleotide context. Fits error distribution with Exp model for <10,000 sequencing depth and Weibull model for >=10,000 depth.
 #'
 #' @param i Index of the FlankingSeqGroup for which the model is being generated
-#' @param data Dataframe from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit
-#' @param FlankingSeqGroup String with one of 192 trinucleotide contexts in which variants may be found
+#' @param data \code{Dataframe} from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit
+#' @param groups \code{Dataframe} with 192 rows and 4 columns. First column contains the 192 trinucleotide contexts/FlankingSeqGroup
 #' @param plot Logical. Whether or not to output a plot of the error distribution with the model fit
-#' @import VariantAnnotation
-#' @import fitdistrplus
+# @importFrom fitdistrplus fitdist
+# @importFrom graphics hist title points
+# @importClassesFrom VariantAnnotation VRanges
+# @importMethodsFrom VariantAnnotation altDepth refDepth
 #' @return This function returns a \code{dataframe} with the following information:
 #' \itemize{
 #'	\item FlankingSeqGroup
@@ -22,48 +24,50 @@
 #	- Ammend the generated plot
 
 generate_model <-
-function(i, data, FlankingSeqGroup, plot=FALSE){
+function(i, data, groups, plot=FALSE){
 
   # set up output for function.
     # i, fit, param estimate 1, param estimate 2
   l <- paste(c(i,"None",NA,NA))
 
   # identify the FlankingSeqGroup in the data corresponding to index i in groups
-  index <- which(data$FlankingSeqGroup==groups$FlankingSeqGroup[i])
+  index <- which(data$FlankingSeqGroup == groups$FlankingSeqGroup[i])
 
   # tabulate alternate allele counts for this group into contingency table
-  tab <- as.data.frame(table(altDepth(data)[index]))
+  tab <- as.data.frame(table(VariantAnnotation::altDepth(data)[index]))
   # change alternate allele counts to numeric
     ### TO DO: Is this necessary???
   tab$Var1 <- as.numeric(as.character(tab$Var1))
 
   # get alternate allele count
-  altBases <- altDepth(data)[index]
+  altBases <- VariantAnnotation::altDepth(data)[index]
 
   # Display Alt Allele count histogram and log(VAF) ~ log(Coverage)
   if(plot==TRUE){
     # histogram of alt allele count
-    hist(altDepth(data)[index],breaks = 100)
+    graphics::hist(VariantAnnotation::altDepth(data)[index],breaks = 100)
     # contingency table of alt allele count
     table(altBases)
 
     # get data corresponding to this signature
     s <- data[index,]
     # establish plot x and y limits
-    xmin <- min(log(refDepth(s)+altDepth(s)))
-    xmax <- max(log(refDepth(s)+altDepth(s)))
-    ymin <- min(log(altDepth(s)/(refDepth(s)+altDepth(s))))
-    ymax <- max(log(altDepth(s)/(refDepth(s)+altDepth(s))))
+    xmin <- min(log(VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s)))
+    xmax <- max(log(VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s)))
+    ymin <- min(log(VariantAnnotation::altDepth(s) / (VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s))))
+    ymax <- max(log(VariantAnnotation::altDepth(s) / (VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s))))
 
     # Plot the relationship between log(VAF) ~ log(Depth) for that signature
-    plot(x = log(refDepth(s)+altDepth(s)), y = log(altDepth(s)/(refDepth(s)+altDepth(s))),
+    plot(x = log(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s)),
+         y = log(VariantAnnotation::altDepth(s)/(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s))),
          xlab = "log( Read Depth )", ylab = "log( Variant Allele Frequency )", xlim = c(xmin,xmax), ylim = c(ymin,ymax))
-    title(paste("log(VAF) ~ log(Depth) for Signature:", groups$FlankingSeqGroup[i]))
+    graphics::title(paste("log(VAF) ~ log(Depth) for Signature:", groups$FlankingSeqGroup[i]))
 
     # colour in point with max Alternate Allele Frequency
       ### TO DO: Is this necessary???
-    max_alt_count <- which(altDepth(s) == max(altDepth(s)))
-    points(x = log(refDepth(s)+altDepth(s))[max_alt_count], y = log(altDepth(s)/(refDepth(s)+altDepth(s)))[max_alt_count], pch=19, col="red")
+    max_alt_count <- which(VariantAnnotation::altDepth(s) == max(VariantAnnotation::altDepth(s)))
+    graphics::points(x = log(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s))[max_alt_count],
+           y = log(VariantAnnotation::altDepth(s)/(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s)))[max_alt_count], pch=19, col="red")
     }
 
   # If there are more than two different alternate allele counts for this seq group
@@ -107,12 +111,12 @@ function(i, data, FlankingSeqGroup, plot=FALSE){
     x1 <- as.numeric(tab$Var1)
 
     #weibull
-    fitW <- try(fitdist(altBases, distr = "weibull",method = "qme",probs=c(0.5,0.99)),silent=TRUE)
+    fitW <- try(fitdistrplus::fitdist(altBases, distr = "weibull",method = "qme",probs=c(0.5,0.99)),silent=TRUE)
     #exponential
-    fitEx <- try(fitdist(altBases, distr = "exp",method = "qme",probs=c(0.99)),silent=TRUE)
+    fitEx <- try(fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.99)),silent=TRUE)
 
     # if mean reads less than 10,000
-    if(median(refDepth(data))<=10000){
+    if(stats::median(VariantAnnotation::refDepth(data))<=10000){
       # make sure that exponential fit worked
       if(!inherits(fitEx, "try-error") & !is.na(fitEx$estimate[[1]])){
         # Ex as empty matrix with 4 cols
@@ -120,7 +124,7 @@ function(i, data, FlankingSeqGroup, plot=FALSE){
         # iterate through from 0.05 to Exp Fit rate estimate + 0.5, taking steps of 0.05
         for(r in seq(0.05,fitEx$estimate[[1]]+0.5,0.05)){
           # generate exponential distribution of alt count for each decay rate
-          Density <- dexp(x1, rate = r)
+          Density <- stats::dexp(x1, rate = r)
 
           # vector combining observed Alt Count with expected Alt Count from Density plot
           x <- cbind(tab$Freq,(tab$Freq[1]/Density[1])*Density)
@@ -160,7 +164,7 @@ function(i, data, FlankingSeqGroup, plot=FALSE){
         # fit the distribution and get a rate estimate
         ### Fit the quantiles by a 0.9 probability vector
         ### I DON'T KNOW WHAT THIS MEANS OR HOW TO OPTIMIZE IT ##################
-        fitEx <- fitdist(altBases, distr = "exp",method = "qme",probs=c(0.9))
+        fitEx <- fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.9))
 
         ##### I DON'T UNDERSTAND THIS ONE EITHER #############################
         ### Do we just force in a rate estimate?
@@ -172,7 +176,7 @@ function(i, data, FlankingSeqGroup, plot=FALSE){
     }
 
     # Choose whether to use Exp or Weibull based on sequence depth
-    if(median(refDepth(data))<=10000){
+    if(stats::median(VariantAnnotation::refDepth(data))<=10000){
       best <- 1
     } else {
       best <- 2

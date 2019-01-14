@@ -4,15 +4,18 @@
 #'
 #' @param samp \code{VRanges} object of the varscan pileup2cns output annotated with variant context
 #' @param samp_models \code{Data.Frame} of context specific error models generated from \code{generate_all_models}
-#' @import doParallel
-#' @import fitdistrplus
-#' @import VariantAnnotation
-#' @import data.table
+# @importClassesFrom VariantAnnotation VRanges
+#' @importFrom foreach "%dopar%"
+# @import doParallel
 #' @export
 #' @examples
-#' model_input <- filter_model_input(model_input = samp, flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE, cosmic_mutations = hemeCOSMIC, cosmic_mut_frequency = 10)
+#' \dontrun{
+#' model_input <- filter_model_input(model_input = samp,
+#' flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
+#' cosmic_mutations = hemeCOSMIC, cosmic_mut_frequency = 10)
 #' samp_models <- generate_all_models(samp = model_input, plots = FALSE)
 #' variant_calls <- call_all_variants(samp, samp_models)
+#' }
 #' @return This function returns a \code{VRanges} with the following metadata:
 #' \itemize{
 #'	\item FlankingSeqGroup
@@ -38,7 +41,7 @@ function(samp, samp_models) {
 
   # for each signature in trinucleotide combo
     # compare alternate allele count with
-  m <- foreach(i=1:length(flanking_seqs), .combine='c') %dopar% {
+  m <- foreach::foreach(i=1:length(flanking_seqs), .combine='c') %dopar% {
     call_variants(i, samp, flanking_seqs, samp_models)
   }
 

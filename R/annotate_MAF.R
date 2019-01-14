@@ -3,13 +3,19 @@
 #' Annotate VRanges object with population minor allele frequency from gnomAD
 #'
 #' @param varscan_output \code{VRanges} object of the varscan pileup2cns output
-#' @import VariantAnnotation
-#' @import MafDb.gnomAD.r2.0.1.GRCh38
-#' @import GenomicScores
+# @importClassesFrom VariantAnnotation VRanges
+# @importFrom MafDb.gnomAD.r2.0.1.GRCh38 MafDb.gnomAD.r2.0.1.GRCh38
+# @importFrom GenomicScores gscores
+# @importFrom utils data
+# @importFrom GenomeInfoDb genome
+# @importFrom rtracklayer liftOver
 #' @export
 #' @examples
-#' variants <- load_as_VRanges(sample_name = "pt123", sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
+#' \dontrun{
+#' variants <- load_as_VRanges(sample_name = "pt123",
+#' sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
 #' variants <- annotate_MAF(varscan_output = variants)
+#' }
 #' @return This function returns the \code{VRanges} object with the additional metadata column \code{MAF}.
 
 ### TO DO LIST:
@@ -25,21 +31,24 @@
 # function(varscan_output, liftOver_chain_hg19toHg38 = "hg19ToHg38.over.chain", liftOver_chain_hg38toHg19 = "hg38ToHg19.over.chain"){
 
 annotate_MAF <-
-function(varscan_output){
+  function(varscan_output){
 
-  # Liftover from hg19 to hg38
-  #hg19tohg38 <- import.chain(liftOver_chain_hg19toHg38)
-  varscan_output_hg38 <- unlist(liftOver(varscan_output, hg19tohg38))
-  genome(varscan_output_hg38) <- "GRCh38"
+    # Liftover from hg19 to hg38
+    #hg19tohg38 <- import.chain(liftOver_chain_hg19toHg38)
+    utils::data("hg19tohg38", envir = environment())
+    varscan_output_hg38 <- unlist(rtracklayer::liftOver(varscan_output, hg19tohg38))
+    GenomeInfoDb::genome(varscan_output_hg38) <- "GRCh38"
 
-  # Annotate with MAF from Exac
-  varscan_output_hg38_anno <- gscores(MafDb.gnomAD.r2.0.1.GRCh38, varscan_output_hg38)
-  seqlevelsStyle(varscan_output_hg38_anno) <- "UCSC"
+    # Annotate with MAF from Exac
+    varscan_output_hg38_anno <- GenomicScores::gscores(MafDb.gnomAD.r2.0.1.GRCh38::MafDb.gnomAD.r2.0.1.GRCh38, varscan_output_hg38)
+    GenomeInfoDb::seqlevelsStyle(varscan_output_hg38_anno) <- "UCSC"
 
-  # Liftover from hg38 back to hg19
-  #hg38tohg19 <- import.chain(liftOver_chain_hg38toHg19)
-  varscan_output_anno <- unlist(liftOver(varscan_output_hg38_anno, hg38tohg19))
-  genome(varscan_output_anno) <- "hg19"
+    # Liftover from hg38 back to hg19
+    #hg38tohg19 <- import.chain(liftOver_chain_hg38toHg19)
+    utils::data("hg38tohg19", envir = environment())
+    varscan_output_anno <- unlist(rtracklayer::liftOver(varscan_output_hg38_anno, hg38tohg19))
+    GenomeInfoDb::genome(varscan_output_anno) <- "hg19"
 
-  return(varscan_output_anno)
-}
+    rm(hg19tohg38, hg38tohg19)
+    return(varscan_output_anno)
+  }
