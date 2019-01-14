@@ -1,13 +1,27 @@
 Package: ECSI
-Title: What the Package Does (one line, title case)
+Title: Error Correction through Contextual Signature Integration
 Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
-Depends: R (>= 3.5.1)
-License: What license is it under?
+Authors@R: c(
+  person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")),
+  person("Sagi", "Abelson", email = "sagi.abelson@uhnresearch.ca", role = c("aut", "ctb")))
+Description: Traditional variant calling methods utilize variant allele frequency (VAF) cutoffs
+  to call variants. These cutoffs are often set arbitrarily and the measure becomes 
+  problematic when trying to call at variants at low VAFs, where true biological variation 
+  becomes hard to distinguish from sequencing error. The 'ECSI' package employs a novel 
+  variant calling approach that models sequencing error distributions across 192 trinucleotide 
+  contexts and conducts variant calling by comparing each putative variant to its corresponding
+  contextual error distribution. This demonstrates superior sensitivity and specificity over 
+  existing variant calling methods and bolsters our ability to accurately distinguish signal 
+  from noise at very low VAFs.
+Depends: R (>= 3.5.0)
+Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer,
+  GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, GenomicScores, MafDb.gnomAD.r2.0.1.GRCh38, utils, BiocGenerics
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat
 VignetteBuilder: knitr
+RoxygenNote: 6.1.1
