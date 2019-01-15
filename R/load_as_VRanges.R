@@ -41,7 +41,7 @@ function(sample_name, sample_path, genome = "hg19", MAPQ_cutoff = 59, metadata =
   # Load in as dataframe
   varscan_output_df <- data.table::fread(sample_path) %>%
     dplyr::filter(Reads2 != 0) %>%
-    dplyr::filter(MAPQual2 >= MAPQ_cutoff)
+    dplyr::filter(MapQual2 >= MAPQ_cutoff)
 
   # Convert to VRanges
   varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
