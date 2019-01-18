@@ -5,7 +5,7 @@
 #' @param sample_name Name of the sample
 #' @param sample_path Sample file location
 #' @param genome Reference genome to use, default is hg19
-#' @param MAPQ_cutoff Minimum acceptable MAPQ score for variants to keep
+# @param MAPQ_cutoff Minimum acceptable MAPQ score for variants to keep
 #' @param metadata Logical. Whether to include metadata (VAF, quality scores, strand-specific counts)
 # @importFrom data.table fread
 # @importFrom methods as
@@ -36,12 +36,11 @@
 #	- Accommodate hg38 as well
 
 load_as_VRanges <-
-function(sample_name, sample_path, genome = "hg19", MAPQ_cutoff = 59, metadata = TRUE) {
+function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
 
   # Load in as dataframe
   varscan_output_df <- data.table::fread(sample_path) %>%
-    dplyr::filter(Reads2 != 0) %>%
-    dplyr::filter(MapQual2 >= MAPQ_cutoff)
+    dplyr::filter(Reads2 != 0)
 
   # Convert to VRanges
   varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
