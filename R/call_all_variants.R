@@ -58,5 +58,8 @@ function(samp, samp_models) {
     # NOTE THAT THIS IS BEFORE MULTIPLE TESTING
     # NOTE THAT IF MODEL IS NOT AVAILABLE, PVALUE IS 1. THIS IS NOT IDEAL.
 
+  # covert samp$model to RLE to save memory
+  samp$model <- methods::as(samp$model, "Rle")
+
   return(samp)
 }
