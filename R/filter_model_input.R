@@ -40,10 +40,10 @@ function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, fi
   model_input <- model_input[which(model_input$VAF < VAF_cutoff),]
 
   # filter MAPQ
-  model_input <- filter_MAPQ[model_input, MAPQ_cutoff_ref = MAPQ_cutoff_ref, MAPQ_cutoff_alt = MAPQ_cutoff_alt]
+  model_input <- filter_MAPQ(model_input, MAPQ_cutoff_ref = MAPQ_cutoff_ref, MAPQ_cutoff_alt = MAPQ_cutoff_alt)
 
   # remove variants that overlap with flagged alleles
-  model_input <- model_input[-S4Vectors::queryHits(GenomicRanges::findOverlaps(model_input, flagged_alleles, type = "any"))
+  model_input <- model_input[-S4Vectors::queryHits(GenomicRanges::findOverlaps(model_input, flagged_alleles, type = "any"))]
 
   # if filtering cosmic mutations
   if(filter_cosmic_mutations == TRUE){
