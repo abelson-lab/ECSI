@@ -3,7 +3,7 @@
 #' Annotate VRanges object with population minor allele frequency from gnomAD
 #'
 #' @param varscan_output \code{VRanges} object of the varscan pileup2cns output
-#' @param maf_database \code{GScores} object with MAFs for each position
+#' @param MAF_database \code{GScores} object with MAFs for each position
 # @importClassesFrom VariantAnnotation VRanges
 # @importFrom MafDb.gnomAD.r2.0.1.GRCh38 MafDb.gnomAD.r2.0.1.GRCh38
 # @importFrom GenomicScores gscores
@@ -15,8 +15,8 @@
 #' \dontrun{
 #' variants <- load_as_VRanges(sample_name = "pt123",
 #' sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
-#' library(MafDb.gnomADex.r2.0.1.hs37d5)
-#' variants <- annotate_MAF(varscan_output = variants, maf_database = MafDb.gnomADex.r2.0.1.hs37d5)
+#' library(MafDb.gnomADex.r2.1.hs37d5)
+#' variants <- annotate_MAF(varscan_output = variants, MAF_database = MafDb.gnomADex.r2.1.hs37d5)
 #' }
 #' @return This function returns the \code{VRanges} object with the additional metadata column \code{MAF}.
 
