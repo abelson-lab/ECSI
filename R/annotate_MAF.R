@@ -54,7 +54,7 @@ annotate_MAF <-
 #     rm(hg19tohg38, hg38tohg19)
 
     # Annotate MAF
-    varscan_output_anno <- GenomicScores::gscores(MAF_database, varscan_output_hg38)
+    varscan_output_anno <- GenomicScores::gscores(MAF_database, varscan_output)
     GenomeInfoDb::seqlevelsStyle(varscan_output_anno) <- "UCSC"
 
     return(varscan_output_anno)
