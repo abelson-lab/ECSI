@@ -119,8 +119,8 @@ function(i, data, groups, plot=FALSE){
     if(stats::median(VariantAnnotation::refDepth(data))<=10000){
       # make sure that exponential fit worked
       if(!inherits(fitEx, "try-error") & !is.na(fitEx$estimate[[1]])){
-        # Ex as empty matrix with 4 cols
-        Ex <- matrix(nrow = 0, ncol = 4)
+        # Ex as empty matrix with 2 cols
+        Ex <- matrix(nrow = 0, ncol = 2)
         # iterate through from 0.05 to Exp Fit rate estimate + 0.5, taking steps of 0.05
         for(r in seq(0.05,fitEx$estimate[[1]]+0.5,0.05)){
           # generate exponential distribution of alt count for each decay rate
@@ -177,14 +177,10 @@ function(i, data, groups, plot=FALSE){
 
     # Choose whether to use Exp or Weibull based on sequence depth
     if(stats::median(VariantAnnotation::refDepth(data))<=10000){
-      best <- 1
+      l=paste(c(i,"exp",Ex$V1[indexEx], "NA" )) # exp for depth < 10000
     } else {
-      best <- 2
+      l=paste(c(i,"weibull",fitW$estimate[[1]],fitW$estimate[[2]])) # weibull for depth > 10000
     }
-    # if <= 10,000 use the refined Exp dist
-    if(best==1){l=paste(c(i,"exp",Ex$V1[indexEx], "NA" ))}
-    # weibull is super easy eh?
-    if(best==2){l=paste(c(i,"weibull",fitW$estimate[[1]],fitW$estimate[[2]]))}
   }
 
   # return l vector with i, model, estimate1, estimate
