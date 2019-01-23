@@ -49,9 +49,15 @@ annotate_MAF <-
 
     # convert genome name back to input
     if(genome == "hg19"){
+<<<<<<< HEAD
       genome(varscan_output_anno) <- "hg19"
     } else if(genome == "hg38"){
       genome(varscan_output_anno) <- "hg38"
+=======
+      genome(varscan_output) <- "hg19"
+    } else if(genome == "hg38"){
+      genome(varscan_output) <- "hg38"
+>>>>>>> c6fc45e7bb97ef8a7fc834148948f0e3f98ed4be
     }
 
     return(varscan_output_anno)
