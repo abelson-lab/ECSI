@@ -4,6 +4,7 @@
 #'
 #' @param varscan_output \code{VRanges} object of the varscan pileup2cns output
 #' @param MAF_database \code{GScores} object with MAFs for each position
+#' @param genome Genome of input object, accepts either hg19 or hg38
 # @importClassesFrom VariantAnnotation VRanges
 # @importFrom MafDb.gnomAD.r2.0.1.GRCh38 MafDb.gnomAD.r2.0.1.GRCh38
 # @importFrom GenomicScores gscores
@@ -33,29 +34,25 @@
 # function(varscan_output, liftOver_chain_hg19toHg38 = "hg19ToHg38.over.chain", liftOver_chain_hg38toHg19 = "hg38ToHg19.over.chain"){
 
 annotate_MAF <-
-  function(varscan_output, MAF_database){
+  function(varscan_output, MAF_database, genome = c("hg19", "hg38")){
 
-#     # Liftover from hg19 to hg38
-#     #hg19tohg38 <- import.chain(liftOver_chain_hg19toHg38)
-#     utils::data("hg19tohg38", envir = environment())
-#     varscan_output_hg38 <- unlist(rtracklayer::liftOver(varscan_output, hg19tohg38))
-#     GenomeInfoDb::genome(varscan_output_hg38) <- "GRCh38"
-#
-#     # Annotate with MAF from Exac
-#     varscan_output_hg38_anno <- GenomicScores::gscores(MafDb.gnomAD.r2.0.1.GRCh38::MafDb.gnomAD.r2.0.1.GRCh38, varscan_output_hg38)
-#     GenomeInfoDb::seqlevelsStyle(varscan_output_hg38_anno) <- "UCSC"
-#
-#     # Liftover from hg38 back to hg19
-#     #hg38tohg19 <- import.chain(liftOver_chain_hg38toHg19)
-#     utils::data("hg38tohg19", envir = environment())
-#     varscan_output_anno <- unlist(rtracklayer::liftOver(varscan_output_hg38_anno, hg38tohg19))
-#     GenomeInfoDb::genome(varscan_output_anno) <- "hg19"
-#
-#     rm(hg19tohg38, hg38tohg19)
+    # temp convert genome name to match gscores
+    if(genome == "hg19"){
+      genome(varscan_output) <- "hs37d5"
+    } else if(genome == "hg38"){
+      genome(varscan_output) <- "GRCh38"
+    }
 
     # Annotate MAF
     varscan_output_anno <- GenomicScores::gscores(MAF_database, varscan_output)
     GenomeInfoDb::seqlevelsStyle(varscan_output_anno) <- "UCSC"
+
+    # convert genome name back to input
+    if(genome == "hg19"){
+      genome(varscan_output_anno) <- "hg19"
+    } else if(genome == "hg38"){
+      genome(varscan_output_anno) <- "hg38"
+    }
 
     return(varscan_output_anno)
   }
