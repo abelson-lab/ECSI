@@ -34,8 +34,8 @@ filter_model_input <-
 function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, filter_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 10,
          MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59, filter_custom_alleles = FALSE, custom_allele_positions) {
 
-  # keep variants below MAF cutoff
-  model_input <- model_input[which(model_input$AF < MAF_cutoff),]
+  # keep variants below MAF cutoff (keep NA because that means 0)
+  model_input <- model_input[which(model_input$AF < MAF_cutoff | is.na(model_input$AF)),]
   # keep variants below VAF cutoff
   model_input <- model_input[which(model_input$VAF < VAF_cutoff),]
 
