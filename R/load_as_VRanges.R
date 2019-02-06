@@ -42,14 +42,16 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
   varscan_output_df <- data.table::fread(sample_path) %>%
     dplyr::filter(Reads2 != 0)
 
-  # Convert to VRanges
-  varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
-    seqnames = paste0("chr",Chrom),
-    ranges = IRanges(Position, Position),
-    ref = Ref, alt = VarAllele,
-    refDepth = Reads1, altDepth = Reads2, sampleNames = sample_name))
 
   if(metadata==TRUE) {
+
+    # Convert to VRanges
+    varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
+      seqnames = paste0("chr",Chrom),
+      ranges = IRanges(Position, Position),
+      ref = Ref, alt = VarAllele,
+      refDepth = Reads1, altDepth = Reads2,
+      sampleNames = sample_name))
 
     # Add metadata
     S4Vectors::mcols(varscan_output) <- varscan_output_df %>%
@@ -63,6 +65,13 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
     varscan_output$MapQual2 <- methods::as(varscan_output$MapQual2, "Rle")
 
   } else if (metadata == "VAF"){
+
+    # Convert to VRanges but without refDepth or altDepth
+    varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
+      seqnames = paste0("chr",Chrom),
+      ranges = IRanges(Position, Position),
+      ref = Ref, alt = VarAllele,
+      sampleNames = sample_name))
 
     # Add metadata
     S4Vectors::mcols(varscan_output) <- varscan_output_df %>%
