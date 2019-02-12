@@ -77,6 +77,16 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
     S4Vectors::mcols(varscan_output) <- varscan_output_df %>%
       dplyr::mutate(VAF = Reads2 / (Reads1 + Reads2)) %>%
       dplyr::select(VAF)
+
+  } else {
+
+    # Convert to VRanges
+    varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
+      seqnames = paste0("chr",Chrom),
+      ranges = IRanges(Position, Position),
+      ref = Ref, alt = VarAllele,
+      refDepth = Reads1, altDepth = Reads2,
+      sampleNames = sample_name))
   }
 
   # specify genome
