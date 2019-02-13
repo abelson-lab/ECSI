@@ -6,6 +6,7 @@
 #' @param exclude_cosmic_mutations Logical indicating whether or not to exclude cosmic mutations from flagged SNPs
 #' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
 #' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
+#' @param memory_saving Logical. Option to save memory if you have too many samples, but takes twice as long
 # @importClassesFrom VariantAnnotation VRanges SimpleVRangesList
 # @importMethodsFrom S4Vectors mcols queryHits
 # @importMethodsFrom GenomicRanges findOverlaps
@@ -38,36 +39,104 @@
 #	- Parameter to tune fisher test cut-off
 
 # may have to input functions as arguments
+# this is kind of inefficient as we need to loop through loading the samples twice,
 
 get_flagged_alleles <-
-function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3){
+function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3, memory_saving = FALSE){
 
-  ### GRANGES LIST TO STORE ALL THE SAMPLES BY POSITION AND VAF
-  vrlist <- VariantAnnotation::VRangesList()
+  alleles <- VRanges()
 
-  for(samp_path in files){
-    # samp name
-    samp_name <- substr(samp_path,4,12)
-    # get sample as VRanges and annotate with sequence context and MAF
-    samp <- load_as_VRanges(samp_name, samp_path, metadata = "VAF")
-    # save as item in grlist
-    vrlist[[samp_name]] <- samp
+  if(save_memory == FALSE){
+
+    # iterate through files to build VRanges with all alleles and VAFs
+    for(samp_path in files){
+      # samp name
+      samp_name <- substr(samp_path,4,12)
+      print(samp_name)
+
+      # get sample as VRanges and annotate with sequence context and MAF
+      samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
+        filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+
+      # add any extra alleles from this sample to the alleles VRanges object
+      samp_alleles <- VRanges(seqnames = seqnames(samp), ranges = ranges(samp), ref = ref(samp), alt = alt(samp))
+      alleles <- unique(append(alleles, samp_alleles))
+
+      # add VAFs for this sample to alleles metadata
+      S4Vectors::mcols(alleles)[BiocGenerics::match(samp, alleles), samp_name] = samp$VAF
+      rm(samp, samp_alleles)
+    }
+
+    ### TAG THE FREQUENT SNPS
+    flagged_alleles <- flag_alleles(alleles)
+
+  } else if(save_memory == TRUE){
+
+    VAFs <- c()
+
+    # iterate through files to build VRanges with all alleles
+    for(samp_path in files){
+      # samp name
+      samp_name <- substr(samp_path,4,12)
+      print(samp_name)
+
+      # get sample as VRanges and annotate with sequence context and MAF
+      samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
+        filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+
+      # add any extra alleles from this sample to the alleles VRanges object
+      samp_alleles <- VRanges(seqnames = seqnames(samp), ranges = ranges(samp), ref = ref(samp), alt = alt(samp))
+      alleles <- unique(append(alleles, samp_alleles))
+
+      # store vafs
+      VAFs <- append(VAFs, samp$VAF)
+      rm(samp, samp_name, samp_alleles)
+    }
+
+    ### now start flagging the alleles
+    VAFlen=length(VAFs)   # length of all VAFs
+
+    Q=stats::quantile(VAFs, seq(0.99,1,0.001))
+    Q=Q[-which(Q==1)]   # remove 100th percentile
+    rm(VAFs)
+
+    # matrix to store occurrences for each quantile
+    vafquantile <- matrix(data = 0, nrow = length(alleles), ncol = length(Q),
+                          dimnames = list(NULL, paste0("Q", gsub(x = names(Q), pattern = "%", replacement = ""))))
+
+    for(samp_path in files){
+      # samp name
+      samp_name <- substr(samp_path,4,12)
+      print(samp_name)
+
+      # get sample as VRanges and annotate with sequence context and MAF
+      samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
+        filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+
+      # iterate through quantiles and tally up
+      for(j in 1:length(Q)){
+        ### load sample
+        samp_quantile <- samp[which(samp$VAF > Q[j])]
+        if(length(samp_quantile) >= 1){
+          vafquantile[BiocGenerics::match(samp_quantile, alleles),j] <- vafquantile[BiocGenerics::match(samp_quantile, alleles),j] + 1
+        }
+      }
+      rm(samp, samp_name, samp_quantile)
+    }
+
+    flag_index <- c()
+
+    # now iterate through and determine n for fisher
+    for(j in 1:length(Q)){
+      n = 0; x = 1
+      while (x > 0.05) {
+        n = n + 1
+        x = fisher.test(matrix(c(n, length(files), sum(vafquantile[,j]), VAFlen), ncol = 2), conf.int = TRUE, conf.level = 0.95)[[1]]
+      }
+      flag_index = append(flag_index, which(vafquantile[,j] > n))
+    }
+    flagged_alleles <- alleles[unique(flag_index),]
   }
-
-  ### CREATE THE VARIANTS MATRIX TO FEED INTO TAGGED SNPS
-
-  # all unique positions
-  variants = unique(unlist(vrlist))
-  S4Vectors::mcols(variants)$VAF <- NULL
-
-  for (i in 1:length(vrlist)){
-    samp_name <- names(vrlist)[i]
-    samp <- vrlist[[i]]
-    S4Vectors::mcols(variants)[BiocGenerics::match(samp, variants), samp_name] = samp$VAF
-  }
-
-  ### TAG THE FREQUENT SNPS
-  flagged_alleles <- flag_alleles(variants)
 
   # exclude the cosmic mutations
   if(exclude_cosmic_mutations == TRUE){
