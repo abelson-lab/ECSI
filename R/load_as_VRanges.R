@@ -51,7 +51,7 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
     ranges = IRanges::IRanges(varscan_df$Position, varscan_df$Position),
     ref = varscan_df$Ref,
     alt = varscan_df$VarAllele,
-    sampleNames = varscan_df$sample_name)
+    sampleNames = sample_name)
 
   # Add metadata
   S4Vectors::mcols(varscan_output) <- varscan_df %>%
@@ -68,7 +68,7 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
       alt = varscan_df$VarAllele,
       refDepth = varscan_df$Reads1,
       altDepth = varscan_df$Reads2,
-      sampleNames = varscan_df$sample_name)
+      sampleNames = sample_name)
 
     if(metadata==TRUE) {
 
