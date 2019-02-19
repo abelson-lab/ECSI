@@ -39,61 +39,58 @@ load_as_VRanges <-
 function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
 
   # Load in as dataframe
-  varscan_output_df <- data.table::fread(sample_path) %>%
+  varscan_df <- data.table::fread(sample_path) %>%
     dplyr::filter(Reads2 != 0)
 
 
-  if(metadata==TRUE) {
+  if(metadata == "VAF"){
 
-    # Convert to VRanges
-    varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
-      seqnames = paste0("chr",Chrom),
-      ranges = IRanges(Position, Position),
-      ref = Ref, alt = VarAllele,
-      refDepth = Reads1, altDepth = Reads2,
-      sampleNames = sample_name))
+  # Convert to VRanges but without refDepth or altDepth
+  varscan_output <- VariantAnnotation::VRanges(
+    seqnames = paste0("chr",varscan_df$Chrom),
+    ranges = IRanges::IRanges(varscan_df$Position, varscan_df$Position),
+    ref = varscan_df$Ref,
+    alt = varscan_df$VarAllele,
+    sampleNames = varscan_df$sample_name)
 
-    # Add metadata
-    S4Vectors::mcols(varscan_output) <- varscan_output_df %>%
-      dplyr::mutate(VAF = Reads2 / (Reads1 + Reads2)) %>%
-      dplyr::select(VAF, Qual1, Qual2, MapQual1, MapQual2, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus)
-
-    # Convert quality scores to Rle to save memory
-    varscan_output$Qual1 <- methods::as(varscan_output$Qual1, "Rle")
-    varscan_output$Qual2 <- methods::as(varscan_output$Qual2, "Rle")
-    varscan_output$MapQual1 <- methods::as(varscan_output$MapQual1, "Rle")
-    varscan_output$MapQual2 <- methods::as(varscan_output$MapQual2, "Rle")
-
-  } else if (metadata == "VAF"){
-
-    # Convert to VRanges but without refDepth or altDepth
-    varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
-      seqnames = paste0("chr",Chrom),
-      ranges = IRanges(Position, Position),
-      ref = Ref, alt = VarAllele,
-      sampleNames = sample_name))
-
-    # Add metadata
-    S4Vectors::mcols(varscan_output) <- varscan_output_df %>%
-      dplyr::mutate(VAF = Reads2 / (Reads1 + Reads2)) %>%
-      dplyr::select(VAF)
+  # Add metadata
+  S4Vectors::mcols(varscan_output) <- varscan_df %>%
+    dplyr::mutate(VAF = Reads2 / (Reads1 + Reads2)) %>%
+    dplyr::select(VAF)
 
   } else {
 
     # Convert to VRanges
-    varscan_output <- with(varscan_output_df, VariantAnnotation::VRanges(
-      seqnames = paste0("chr",Chrom),
-      ranges = IRanges(Position, Position),
-      ref = Ref, alt = VarAllele,
-      refDepth = Reads1, altDepth = Reads2,
-      sampleNames = sample_name))
+    varscan_output <- VariantAnnotation::VRanges(
+      seqnames = paste0("chr",varscan_df$Chrom),
+      ranges = IRanges::IRanges(varscan_df$Position, varscan_df$Position),
+      ref = varscan_df$Ref,
+      alt = varscan_df$VarAllele,
+      refDepth = varscan_df$Reads1,
+      altDepth = varscan_df$Reads2,
+      sampleNames = varscan_df$sample_name)
+
+    if(metadata==TRUE) {
+
+      # Add metadata
+      S4Vectors::mcols(varscan_output) <- varscan_df %>%
+        dplyr::mutate(VAF = Reads2 / (Reads1 + Reads2)) %>%
+        dplyr::select(VAF, Qual1, Qual2, MapQual1, MapQual2, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus)
+
+      # Convert quality scores to Rle to save memory
+      varscan_output$Qual1 <- methods::as(varscan_output$Qual1, "Rle")
+      varscan_output$Qual2 <- methods::as(varscan_output$Qual2, "Rle")
+      varscan_output$MapQual1 <- methods::as(varscan_output$MapQual1, "Rle")
+      varscan_output$MapQual2 <- methods::as(varscan_output$MapQual2, "Rle")
+
+    }
   }
 
   # specify genome
   GenomeInfoDb::genome(varscan_output) = genome    # for now, must be hg19
 
   # clean up and remove dataframe
-  rm(varscan_output_df)
+  rm(varscan_df)
 
   return(varscan_output)
 }
