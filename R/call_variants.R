@@ -70,7 +70,7 @@ function(i, data, flanking_seqs, error_models){
     # iterate through alt allele counts
     for(z in 1:length(alt_counts)){
       # find the rows in the varscan call corresponding to this alt allele count
-      index2 <- which(altDepth(data)[index1] == alt_counts[z])
+      index2 <- which(VariantAnnotation::altDepth(data)[index1] == alt_counts[z])
       # index for rows in varscan call corresponding to this alt count + Flanking Seq Group
       ind1 <- append(ind1,index1[index2])
       # p_value corresponding to each entry in ind1

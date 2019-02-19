@@ -38,9 +38,9 @@ annotate_MAF <-
 
     # temp convert genome name to match gscores
     if(genome == "hg19"){
-      genome(varscan_output) <- "hs37d5"
+      GenomeInfoDb::genome(varscan_output) <- "hs37d5"
     } else if(genome == "hg38"){
-      genome(varscan_output) <- "GRCh38"
+      GenomeInfoDb::genome(varscan_output) <- "GRCh38"
     }
 
     # Annotate MAF
@@ -49,9 +49,9 @@ annotate_MAF <-
 
     # convert genome name back to input
     if(genome == "hg19"){
-      genome(varscan_output_anno) <- "hg19"
+      GenomeInfoDb::genome(varscan_output_anno) <- "hg19"
     } else if(genome == "hg38"){
-      genome(varscan_output_anno) <- "hg38"
+      GenomeInfoDb::genome(varscan_output_anno) <- "hg38"
     }
 
     return(varscan_output_anno)

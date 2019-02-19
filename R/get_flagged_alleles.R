@@ -44,9 +44,9 @@
 get_flagged_alleles <-
 function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3, memory_saving = FALSE){
 
-  alleles <- VRanges()
+  alleles <- VariantAnnotation::VRanges()
 
-  if(save_memory == FALSE){
+  if(memory_saving == FALSE){
 
     # iterate through files to build VRanges with all alleles and VAFs
     for(samp_path in files){
@@ -59,7 +59,10 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
         filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
 
       # add any extra alleles from this sample to the alleles VRanges object
-      samp_alleles <- VRanges(seqnames = seqnames(samp), ranges = ranges(samp), ref = ref(samp), alt = alt(samp))
+      samp_alleles <- VariantAnnotation::VRanges(seqnames = GenomicRanges::seqnames(samp),
+                                                 ranges = GenomicRanges::ranges(samp),
+                                                 ref = VariantAnnotation::ref(samp),
+                                                 alt = VariantAnnotation::alt(samp))
       alleles <- unique(append(alleles, samp_alleles))
 
       # add VAFs for this sample to alleles metadata
@@ -70,7 +73,7 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
     ### TAG THE FREQUENT SNPS
     flagged_alleles <- flag_alleles(alleles)
 
-  } else if(save_memory == TRUE){
+  } else if(memory_saving == TRUE){
 
     VAFs <- c()
 
@@ -85,7 +88,10 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
         filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
 
       # add any extra alleles from this sample to the alleles VRanges object
-      samp_alleles <- VRanges(seqnames = seqnames(samp), ranges = ranges(samp), ref = ref(samp), alt = alt(samp))
+      samp_alleles <- VariantAnnotation::VRanges(seqnames = GenomicRanges::seqnames(samp),
+                                                 ranges = GenomicRanges::ranges(samp),
+                                                 ref = VariantAnnotation::ref(samp),
+                                                 alt = VariantAnnotation::alt(samp))
       alleles <- unique(append(alleles, samp_alleles))
 
       # store vafs
@@ -131,7 +137,7 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
       n = 0; x = 1
       while (x > 0.05) {
         n = n + 1
-        x = fisher.test(matrix(c(n, length(files), sum(vafquantile[,j]), VAFlen), ncol = 2), conf.int = TRUE, conf.level = 0.95)[[1]]
+        x = stats::fisher.test(matrix(c(n, length(files), sum(vafquantile[,j]), VAFlen), ncol = 2), conf.int = TRUE, conf.level = 0.95)[[1]]
       }
       flag_index = append(flag_index, which(vafquantile[,j] > n))
     }
