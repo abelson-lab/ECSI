@@ -16,7 +16,7 @@ Description: Traditional variant calling methods utilize variant allele frequenc
 Depends: R (>= 3.5.0)
 Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer,
   GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, GenomicScores, MafDb.gnomAD.r2.0.1.GRCh38, utils, BiocGenerics
-License: GPL-3
+License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests: 
