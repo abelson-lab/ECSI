@@ -2,7 +2,8 @@
 #'
 #' Flag alleles that are present in too many samples at high variant allele frequencies as potential errors.
 #'
-#' @param files List of paths to all variant files from varscan pileup2cns output
+#' @param sample_names Character vector with the names of the samples
+#' @param sample_paths Character vector with the paths of the samples
 #' @param exclude_cosmic_mutations Logical indicating whether or not to exclude cosmic mutations from flagged SNPs
 #' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
 #' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
@@ -42,16 +43,21 @@
 # this is kind of inefficient as we need to loop through loading the samples twice,
 
 get_flagged_alleles <-
-function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3, memory_saving = FALSE){
+function(sample_names, sample_paths, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3, memory_saving = FALSE){
 
   alleles <- VariantAnnotation::VRanges()
 
   if(memory_saving == FALSE){
 
     # iterate through files to build VRanges with all alleles and VAFs
-    for(samp_path in files){
+    for(i in 1:length(sample_paths)){
+
+      # samp path
+      samp_path <- sample_paths[i]
+      samp_name <- sample_names[i]
+
       # samp name
-      samp_name <- substr(samp_path,4,12)
+      #samp_name <- substr(samp_path,4,12)
       print(samp_name)
 
       # get sample as VRanges and annotate with sequence context and MAF
@@ -78,9 +84,14 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
     VAFs <- c()
 
     # iterate through files to build VRanges with all alleles
-    for(samp_path in files){
+    for(i in 1:length(sample_paths)){
+
+      # samp path
+      samp_path <- sample_paths[i]
+      samp_name <- sample_names[i]
+
       # samp name
-      samp_name <- substr(samp_path,4,12)
+      #samp_name <- substr(samp_path,4,12)
       print(samp_name)
 
       # get sample as VRanges and annotate with sequence context and MAF
@@ -110,9 +121,14 @@ function(files, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_f
     vafquantile <- matrix(data = 0, nrow = length(alleles), ncol = length(Q),
                           dimnames = list(NULL, paste0("Q", gsub(x = names(Q), pattern = "%", replacement = ""))))
 
-    for(samp_path in files){
+    for(i in 1:length(sample_paths)){
+
+      # samp path
+      samp_path <- sample_paths[i]
+      samp_name <- sample_names[i]
+
       # samp name
-      samp_name <- substr(samp_path,4,12)
+      #samp_name <- substr(samp_path,4,12)
       print(samp_name)
 
       # get sample as VRanges and annotate with sequence context and MAF
