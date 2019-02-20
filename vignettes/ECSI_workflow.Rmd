@@ -1,0 +1,208 @@
+---
+title: "ECSI Workflow"
+author: "Andy Zeng"
+output: html_notebook
+---
+
+# ECSI Example Workflow 
+
+```{r}
+# Load required packages
+library(VariantAnnotation)
+library(doParallel)
+library(magrittr)
+library(ECSI)
+
+# load MAF annotation - gnomAD exome for hg19
+library(MafDb.gnomADex.r2.1.hs37d5)
+```
+
+
+## Pre-Processing
+
+
+### Get Sample Files
+
+These files are VarScan pileup2cns outputs with information on allele counts for every position that passed a certain depth.
+
+```{r}
+dir="./rawdata/"
+files=list.files(dir,pattern = "F1")[1:39]
+
+sample_paths <- paste0(dir, files)
+cat("First 5 Sample Paths: \n", head(sample_paths))
+
+
+sample_names <- substr(files,4,12)
+cat("First 5 Sample Names: \n", head(sample_names))
+```
+
+
+
+### Get cosmic mutations 
+
+Included with this package are hematologic cancer associated mutations identified through COSMIC. 
+Critically, the last column (named "hemCOSMIC_DC") has the frequency of each mutation within the database - this is what we use for filtering. 
+
+For mutations associated with other cancers, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic)
+
+```{r}
+hemCOSMIC <- load_cosmic_mutations(cosmic_mutations_path = "hemCOSMIC.csv")
+```
+
+
+### Get flagged alleles
+
+Flagged alleles are alleles that appear at a high VAF in a significant number of samples within your cohort. These are very likely to be sequencing errors and should be interpreted with caution in variant calling results. However, if you are expecting recurrent mutations (e.g. Hematologic cancer associated mutations from COSMIC), then you can use the exclude_cosmic_mutations argument and its associated arguments to exclude them from the flagging process.
+
+Here, we will input the COSMIC mutations and ask get_flagged_alleles to ignore any mutations with a COSMIC frequency above 3. 
+Additionally, we are setting the memory_saving function to FALSE in this case because we are only processing 40 samples.
+
+If you are processing > 400 samples on a 16gb RAM device or > 200 samples on a 8gb RAM device, we recommend setting memory_saving = TRUE. 
+This will employ an alternative method that consumes less memory but takes approximately twice as long to run. 
+
+```{r}
+flagged_alleles <- get_flagged_alleles(sample_names, sample_paths, exclude_cosmic_mutations = TRUE, 
+                                       cosmic_mutations = hemCOSMIC, cosmic_mut_frequency = 3, memory_saving = FALSE)
+
+flagged_alleles
+
+```
+
+
+
+### Custom Functions: getting COSMIC hotspots
+
+Since we are only interested in examining hematologic malignancy associated mutations in this analysis, I've included some custom functions to conduct mutations calling only within positions flanking +/- 15bp from a cosmic hotspot. Note that model generation is still conducted on all alleles at all positions.
+
+**This will be cleaned up later**
+
+```{r}
+# GET COSMIC HOTSPOTS
+get_cosmic_hotspot <- function(cosmic_mutations, cosmic_mut_frequency = 10, flanking_seq = 15){
+  # filter by frequency
+  hotspot_vr <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
+  # convert to GRanges to save space
+  hotspots <- GRanges(
+    seqnames = seqnames(hotspot_vr), 
+    ranges = ranges(hotspot_vr))
+  # add relevant metadata
+  hotspots$gene  = hotspot_vr$Gene.refGene
+  hotspots$frequency = hotspot_vr$hemCOSMIC_DC
+  # expand to include positions +/- flanking_seq
+  hotspots = hotspots + flanking_seq  
+  return(hotspots)
+}
+
+# Function to only keep hotspots from sample
+only_hotspots <- function(samp, hotspots){
+  samp_hotspots <- samp[queryHits(findOverlaps(samp, hotspots))]
+  samp_hotspots$gene <- hotspots[subjectHits(findOverlaps(samp, hotspots))]$gene
+  samp_hotspots <- unique(samp_hotspots)
+  return(samp_hotspots)
+}
+
+# Function to do bonferroni correction on output p values
+pvalue_correction <- function(variant_calls, by_sample = TRUE){
+  
+  if(by_sample == TRUE){
+    # get number of p values generated for each sample
+    sample_counts <- table(sampleNames(variant_calls))
+    
+    # get corrected pvalues
+    variant_calls$corrected_pvalue <- variant_calls$model_Pvalue * as.numeric(sample_counts[as.character(sampleNames(variant_calls))])
+    variant_calls$corrected_pvalue <- ifelse(variant_calls$corrected_pvalue > 1, 1, variant_calls$corrected_pvalue)
+  } else {
+    # get corrected pvalues
+    variant_calls$corrected_pvalue <- variant_calls$model_Pvalue * length(variant_calls)
+    variant_calls$corrected_pvalue <- ifelse(variant_calls$corrected_pvalue > 1, 1, variant_calls$corrected_pvalue)
+  }
+  
+  return(variant_calls)
+}
+```
+
+```{r}
+# Get COSMIC hotspots
+COSMIC_hotspots <- hemCOSMIC %>% get_cosmic_hotspot()
+
+COSMIC_hotspots
+```
+
+
+# Generate Models and Call Variants
+
+I will be running this in parallel with the package DoParallel - using 4 cores to speed up the job. 
+
+```{r}
+# start counting time
+total_ptm <- proc.time()
+
+# Make cluster and start
+cl <- makeCluster(4)
+registerDoParallel(cl)
+ 
+# initialize variant calls
+variant_calls <- VRangesList()
+
+
+# Try for all files
+for(i in 1:length(sample_paths)){
+  
+  # get sample name and path
+  samp_path <- sample_paths[i]
+  samp_name <- sample_names[i]
+  
+  print(samp_name)
+  
+  # get sample as VRanges and annotate with sequence context and MAF
+  samp <- load_as_VRanges(samp_name, samp_path) %>%
+    sequence_context() %>%
+    annotate_MAF(., MafDb.gnomADex.r2.1.hs37d5::MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
+  
+  # use sample to generate the error models
+  samp_models <- samp %>%
+    filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59,
+                       filter_cosmic_mutations = TRUE, cosmic_mutations = hemCOSMIC, cosmic_mut_frequency = 10) %>%
+    generate_all_models(., plots = FALSE)
+  
+  # call variants using error models, and aggregate together
+  variant_calls[[samp_name]] <- samp %>% 
+    only_hotspots(., COSMIC_hotspots) %>% 
+    call_all_variants(., samp_models)
+  
+  # cleanup
+  rm(samp_name, samp, samp_models)
+}
+
+
+# Unregister Cluster
+stopCluster(cl)
+rm(cl)
+registerDoSEQ()
+
+# Get total run time
+proc.time() - total_ptm
+```
+
+
+The output is a vranges list object with the variant calls for each samples
+
+```{r}
+# Output is in vranges list
+variant_calls
+```
+
+We can unlist that vranges object, conduct the pvalue correction (bonferroni with all positions), and keep the significant calls. 
+
+```{r}
+# unlist and correct pvalue (bonferroni)
+variant_calls_unlisted <- variant_calls %>% unlist() %>% pvalue_correction(., by_sample = FALSE)
+    # automatically if inputting list of mutations 
+
+# show
+variant_significant <- variant_calls_unlisted[which(variant_calls_unlisted$corrected_pvalue < 0.05)]
+variant_significant
+```
+
+
