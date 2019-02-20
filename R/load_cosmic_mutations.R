@@ -3,11 +3,6 @@
 #' Loads in Cosmic mutations from file and present it as a VRanges object.
 #'
 #' @param cosmic_mutations_path Path to csv file containing COSMIC mutations
-# @importFrom dplyr select
-# @importFrom data.table fread
-# @importMethodsFrom S4Vectors mcols
-# @importClassesFrom IRanges IRanges
-# @importClassesFrom VariantAnnotation VRanges
 #' @export
 #' @examples
 #' \dontrun{

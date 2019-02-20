@@ -4,9 +4,6 @@
 #'
 #' @param variants \code{VRanges} object from get_flagged_alleles
 #' @param metadata Logical. Determine whether or not to keep the metadata (annotations) when returning flagged alleles
-# @importClassesFrom VariantAnnotation VRanges
-# @importMethodsFrom S4Vectors mcols
-# @importFrom stats quantile fisher.test
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
 #'	\item seqnames
@@ -20,10 +17,8 @@
 #'	}
 
 ### TO DO LIST:
-#	- FINISH THE ROXYGEN HEADER
 #	- Check input to ensure it is suitable
-#	- Apply basic quality filter to input prior to flagging variants
-# 	- Parameter to tune quantile starting point
+#	- Parameter to tune quantile starting point
 #	- Parameter to tune fisher test cut-off
 
 flag_alleles <-

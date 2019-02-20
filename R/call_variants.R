@@ -6,9 +6,6 @@
 #' @param data \code{Data.Frame} from \code{generate_all_models} with FlankingSeqGroup and three empty columns for parameters of model fit
 #' @param flanking_seqs String with one of 192 trinucleotide contexts in which variants may be found
 #' @param error_models \code{Data.Frame} of context specific error models generated from \code{generate_all_models}
-# @importFrom stats pexp pweibull
-# @importClassesFrom VariantAnnotation VRanges
-# @importMethodsFrom VariantAnnotation altDepth
 #' @return This function returns a \code{VRanges} with the following metadata:
 #' \itemize{
 #'	\item FlankingSeqGroup
@@ -18,8 +15,6 @@
 
 ### TO DO LIST:
 #	- Check input to ensure it is suitable
-#	- Reduce the number of comments
-#	- Ammend the generated plot
 
 call_variants <-
 function(i, data, flanking_seqs, error_models){

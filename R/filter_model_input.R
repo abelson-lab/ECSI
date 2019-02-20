@@ -13,22 +13,32 @@
 #' @param MAPQ_cutoff_alt Minimum acceptable MAPQ score for alternate allele
 #' @param filter_custom_alleles Logical. Whether to filter out custom alleles (e.g. specific mutational sites) from model input
 #' @param custom_allele_positions \code{VRanges} object with chr, pos, ref, alt of custom alleles to filter out of model input
-# @importMethodsFrom S4Vectors queryHits
-# @importMethodsFrom GenomicRanges findOverlaps
-# @importClassesFrom VariantAnnotation VRanges
 #' @export
 #' @examples
 #' \dontrun{
-#' samp_models <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles,
-#'  filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+#' # Get flagged alleles and cosmic mutations
+#' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
+#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
+#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+#'
+#' # Load and annotate sample
+#' samp <- load_as_VRanges(sample_name = "pt123",
+#'     sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
+#' samp <- sequence_context(samp)
+#' library(MafDb.gnomADex.r2.1.hs37d5)
+#' annotated_samp <- annotate_MAF(varscan_output = variants,
+#'     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
+#'
+#' # Filter model input
+#' samp_model_input <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles,
+#'     filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
 #' }
 #' @return This function returns a filtered \code{VRanges} object.
+#'
+#'
 
 ### TO DO LIST:
-#	- Check input to ensure it is suitable
-#	- Provide option for flagged alleles
-
-# may have to input functions as arguments
+#	- Check argument inputs to ensure it is suitable
 
 filter_model_input <-
 function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, filter_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 10,

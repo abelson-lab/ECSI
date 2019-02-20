@@ -4,17 +4,32 @@
 #'
 #' @param samp \code{VRanges} object of the varscan pileup2cns output annotated with variant context
 #' @param samp_models \code{Data.Frame} of context specific error models generated from \code{generate_all_models}
-# @importClassesFrom VariantAnnotation VRanges
 #' @importFrom foreach "%dopar%"
-# @import doParallel
 #' @export
 #' @examples
 #' \dontrun{
-#' model_input <- filter_model_input(model_input = samp,
-#' flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
-#' cosmic_mutations = hemeCOSMIC, cosmic_mut_frequency = 10)
-#' samp_models <- generate_all_models(samp = model_input, plots = FALSE)
-#' variant_calls <- call_all_variants(samp, samp_models)
+#' # Get flagged alleles and cosmic mutations
+#' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
+#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
+#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+#'
+#' # Load and annotate sample
+#' samp <- load_as_VRanges(sample_name = "pt123",
+#'     sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
+#' samp <- sequence_context(samp)
+#' library(MafDb.gnomADex.r2.1.hs37d5)
+#' annotated_samp <- annotate_MAF(varscan_output = variants,
+#'     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
+#'
+#' # Filter model input
+#' samp_model_input <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles,
+#'     filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+#'
+#' # Generate the error models for this sample
+#' samp_models <- generate_all_models(samp = samp_model_input, plots = FALSE)
+#'
+#' # Call variants for the sample based on the previously generated error models
+#' variant_calls <- call_all_variants(annotated_samp, samp_models)
 #' }
 #' @return This function returns a \code{VRanges} with the following metadata:
 #' \itemize{
@@ -25,9 +40,6 @@
 
 ### TO DO LIST:
 #	- Check input to ensure it is suitable
-# - Is data.table even needed
-
-# may have to input functions as arguments
 
 call_all_variants <-
 function(samp, samp_models) {

@@ -6,8 +6,6 @@
 #' @param MAPQ_cutoff_ref Minimum acceptable MAPQ score for reference allele
 #' @param MAPQ_cutoff_alt Minimum acceptable MAPQ score for alternate allele
 #' @export
-# @importClassesFrom VariantAnnotation VRanges
-# @importMethodsFrom BiocGenerics which
 #' @examples
 #' \dontrun{
 #' variants <- filter_MAPQ(varscan_output = variants, MAPQ_cutoff = 59)

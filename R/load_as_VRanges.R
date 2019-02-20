@@ -5,19 +5,13 @@
 #' @param sample_name Name of the sample
 #' @param sample_path Sample file location
 #' @param genome Reference genome to use, default is hg19
-# @param MAPQ_cutoff Minimum acceptable MAPQ score for variants to keep
 #' @param metadata Logical. Whether to include metadata (VAF, quality scores, strand-specific counts)
-# @importFrom data.table fread
-# @importFrom methods as
 #' @importFrom dplyr "%>%"
-# @importMethodsFrom S4Vectors mcols
-# @importMethodsFrom GenomeInfoDb genome
-# @importClassesFrom VariantAnnotation VRanges
 #' @export
 #' @examples
 #' \dontrun{
 #' variants <- load_as_VRanges(sample_name = "pt123", sample_path = "./patient_123_pileup2cns",
-#' genome = "hg19", MAPQ_cutoff = 59, metadata = TRUE)
+#' genome = "hg19", metadata = TRUE)
 #' }
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
@@ -30,10 +24,6 @@
 #'	\item sampleNames
 #'	\item metadata (optional)
 #'	}
-
-### TO DO LIST:
-#	- Check input to ensure it is suitable
-#	- Accommodate hg38 as well
 
 load_as_VRanges <-
 function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {

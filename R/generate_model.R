@@ -6,10 +6,6 @@
 #' @param data \code{Dataframe} from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit
 #' @param groups \code{Dataframe} with 192 rows and 4 columns. First column contains the 192 trinucleotide contexts/FlankingSeqGroup
 #' @param plot Logical. Whether or not to output a plot of the error distribution with the model fit
-# @importFrom fitdistrplus fitdist
-# @importFrom graphics hist title points
-# @importClassesFrom VariantAnnotation VRanges
-# @importMethodsFrom VariantAnnotation altDepth refDepth
 #' @return This function returns a \code{dataframe} with the following information:
 #' \itemize{
 #'	\item FlankingSeqGroup
@@ -20,8 +16,7 @@
 
 ### TO DO LIST:
 #	- Check input to ensure it is suitable
-#	- Reduce the number of comments
-#	- Ammend the generated plot
+#	- Consider revamping the plots
 
 generate_model <-
 function(i, data, groups, plot=FALSE){
