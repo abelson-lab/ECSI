@@ -1,5 +1,5 @@
 Package: ECSI
-Title: Error Correction through Contextual Signature Integration
+Title: Error Correction by Signature Integration
 Version: 0.0.0.9000
 Authors@R: c(
   person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")),
@@ -15,7 +15,7 @@ Description: Traditional variant calling methods utilize variant allele frequenc
   from noise at very low VAFs.
 Depends: R (>= 3.5.0)
 Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer,
-  GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, GenomicScores, MafDb.gnomAD.r2.0.1.GRCh38, utils, BiocGenerics
+  GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, GenomicScores, utils, BiocGenerics
 License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
