@@ -167,7 +167,7 @@ function(sample_names, sample_paths, exclude_cosmic_mutations = FALSE, cosmic_mu
     # filter for frequency above 3
     cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
     # removed flagged alleles overlapping with cosmic mutations
-    flagged_alleles <- setdiff_VRanges(flagged_alleles, cosmic_mutations)
+    flagged_alleles <- subtract_VRanges(flagged_alleles, cosmic_mutations)
   }
 
   return(flagged_alleles)

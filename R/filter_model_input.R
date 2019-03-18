@@ -53,20 +53,20 @@ function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, fi
   model_input <- filter_MAPQ(model_input, MAPQ_cutoff_ref = MAPQ_cutoff_ref, MAPQ_cutoff_alt = MAPQ_cutoff_alt)
 
   # remove variants that overlap with flagged alleles
-  model_input <- setdiff_VRanges(model_input, flagged_alleles)
+  model_input <- subtract_VRanges(model_input, flagged_alleles)
 
   # if filtering cosmic mutations
   if(filter_cosmic_mutations == TRUE){
     # filter for frequency above 10
     cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
     # remove variants that overlap with cosmic mutations
-    model_input <- setdiff_VRanges(model_input, cosmic_mutations)
+    model_input <- subtract_VRanges(model_input, cosmic_mutations)
   }
 
   # if removing custom alleles
   if(filter_custom_alleles == TRUE){
     # remove variants that overlap with cosmic mutations
-    model_input <- setdiff_VRanges(model_input, custom_allele_positions)
+    model_input <- subtract_VRanges(model_input, custom_allele_positions)
   }
 
   return(model_input)
