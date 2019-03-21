@@ -14,7 +14,7 @@ Description: Traditional variant calling methods utilize variant allele frequenc
   existing variant calling methods and bolsters our ability to accurately distinguish signal 
   from noise at very low VAFs.
 Depends: R (>= 3.5.0)
-Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer,
+Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, stringr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer,
   GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, GenomicScores, utils, BiocGenerics
 License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
