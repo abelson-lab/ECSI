@@ -32,7 +32,6 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
   varscan_df <- data.table::fread(sample_path) %>%
     dplyr::filter(Reads2 != 0)
 
-
   if(metadata == "VAF"){
 
   # Convert to VRanges but without refDepth or altDepth

@@ -11,8 +11,7 @@
 #' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
 #' @param MAPQ_cutoff_ref Minimum acceptable MAPQ score for reference allele
 #' @param MAPQ_cutoff_alt Minimum acceptable MAPQ score for alternate allele
-#' @param filter_custom_alleles Logical. Whether to filter out custom alleles (e.g. specific mutational sites) from model input
-#' @param custom_allele_positions \code{VRanges} object with chr, pos, ref, alt of custom alleles to filter out of model input
+#' @param recurrent_mutations \code{VRanges} object with chr, pos ref, alt of frequently mutated alleles to remove from model input. \code{GRanges} objects are also accepted, in which case filtering will occur by position.
 #' @export
 #' @examples
 #' \dontrun{
@@ -37,12 +36,12 @@
 #'
 #'
 
-### TO DO LIST:
-#	- Check argument inputs to ensure it is suitable
-
 filter_model_input <-
-function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, filter_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 10,
-         MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59, filter_custom_alleles = FALSE, custom_allele_positions) {
+function(model_input, flagged_alleles = NA, MAF_cutoff = 0.001, VAF_cutoff = 0.05, filter_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 10,
+         MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59, recurrent_mutations = NA) {
+
+  # Check that input is VRanges
+  if(class(model_input) != "VRanges"){ stop('Input "model_input" needs to be VRanges object') }
 
   # keep variants below MAF cutoff (keep NA because that means 0)
   model_input <- model_input[which(model_input$AF < MAF_cutoff | is.na(model_input$AF)),]
@@ -52,8 +51,11 @@ function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, fi
   # filter MAPQ
   model_input <- filter_MAPQ(model_input, MAPQ_cutoff_ref = MAPQ_cutoff_ref, MAPQ_cutoff_alt = MAPQ_cutoff_alt)
 
-  # remove variants that overlap with flagged alleles
-  model_input <- subtract_VRanges(model_input, flagged_alleles)
+  # If user provides recurrent mutations
+  if(class(flagged_alleles) %in% c("VRanges", "GRanges")){
+    # remove variants that overlap with cosmic mutations
+    model_input <- subtract_VRanges(model_input, flagged_alleles)
+  }
 
   # if filtering cosmic mutations
   if(filter_cosmic_mutations == TRUE){
@@ -63,10 +65,10 @@ function(model_input, flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, fi
     model_input <- subtract_VRanges(model_input, cosmic_mutations)
   }
 
-  # if removing custom alleles
-  if(filter_custom_alleles == TRUE){
+  # If user provides recurrent mutations
+  if(class(recurrent_mutations) %in% c("VRanges", "GRanges")){
     # remove variants that overlap with cosmic mutations
-    model_input <- subtract_VRanges(model_input, custom_allele_positions)
+    model_input <- subtract_VRanges(model_input, recurrent_mutations)
   }
 
   return(model_input)

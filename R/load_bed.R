@@ -2,12 +2,12 @@
 #'
 #' Loads in sequence ranges from bed file and presents it as a GRanges object. Can handle headers and different Chr naming conventions.
 #'
-#' @param bed_path Path to bed file
+#' @param file Location of bed file
 #' @param genome Reference genome to use, default is hg19
 #' @export
 #' @examples
 #' \dontrun{
-#' regions_of_interest <- load_bed(bed_path = "AML_exons.bed", genome = "hg19")
+#' regions_of_interest <- load_bed(file = "AML_exons.bed", genome = "hg19")
 #' }
 #' @return This function returns a \code{GRanges} object including:
 #' \itemize{
@@ -16,14 +16,18 @@
 #' }
 
 load_bed <-
-function(bed_path, genome = "hg19") {
+function(file, genome = c("hg19", "hg38")) {
+
+  # Check that genome was specified by the user
+  if(length(genome) > 1){ stop("Need to specify genome, either hg19 or hg38.") }
+
   # load as datatable (automatic handling of headers)
-  bed_dt <- data.table::fread(bedpath)
+  bed_dt <- data.table::fread(file)
 
   # convert to data.frame, fill in colnames, standardize chr names
   bed_df <- as.data.frame(bed_dt)
   colnames(bed_df)[1:3] <- c("chr", "start", "stop")
-  bed_df <- dplyr::mutate(bed_df, chr = ifelse(stringr::str_detect(chr, "[Cc][Hh][Rr]"), stringr::str_replace(chr, "[Cc][Hh][Rr]", ""), chr))
+  bed_df$chr <- ifelse(stringr::str_detect(bed_df$chr, "[Cc][Hh][Rr]"), stringr::str_replace(bed_df$chr, "[Cc][Hh][Rr]", ""), bed_df$chr)
 
   # convert to GRanges
   bed_gr <- GenomicRanges::GRanges(

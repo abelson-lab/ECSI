@@ -2,7 +2,7 @@
 #'
 #' Call all variants from the varscan pileup2cns output and the context-specific error models
 #'
-#' @param samp \code{VRanges} object of the varscan pileup2cns output annotated with variant context
+#' @param sample \code{VRanges} object of the varscan pileup2cns output annotated with variant context
 #' @param samp_models \code{Data.Frame} of context specific error models generated from \code{generate_all_models}
 #' @importFrom foreach "%dopar%"
 #' @export
@@ -14,9 +14,9 @@
 #'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 #'
 #' # Load and annotate sample
-#' samp <- load_as_VRanges(sample_name = "pt123",
+#' sample <- load_as_VRanges(sample_name = "pt123",
 #'     sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
-#' samp <- sequence_context(samp)
+#' sample <- sequence_context(sample)
 #' library(MafDb.gnomADex.r2.1.hs37d5)
 #' annotated_samp <- annotate_MAF(varscan_output = variants,
 #'     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
@@ -26,7 +26,7 @@
 #'     filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
 #'
 #' # Generate the error models for this sample
-#' samp_models <- generate_all_models(samp = samp_model_input, plots = FALSE)
+#' samp_models <- generate_all_models(sample = samp_model_input, plots = FALSE)
 #'
 #' # Call variants for the sample based on the previously generated error models
 #' variant_calls <- call_all_variants(annotated_samp, samp_models)
@@ -42,19 +42,22 @@
 #	- Check input to ensure it is suitable
 
 call_all_variants <-
-function(samp, samp_models) {
+function(sample, samp_models) {
+
+  # Check that input is VRanges
+  if(class(sample) != "VRanges"){ stop('Input "sample" needs to be VRanges object') }
 
   # Create model and model_Pvalue columns
-  samp$model <- NA
-  samp$model_Pvalue <- NA
+  sample$model <- NA
+  sample$model_Pvalue <- NA
 
   # Get 192 unique trinucleotide combos
-  flanking_seqs <- unique(samp$FlankingSeqGroup)
+  flanking_seqs <- unique(sample$FlankingSeqGroup)
 
   # for each signature in trinucleotide combo
     # compare alternate allele count with
   m <- foreach::foreach(i=1:length(flanking_seqs), .combine='c') %dopar% {
-    call_variants(i, samp, flanking_seqs, samp_models)
+    call_variants(i, sample, flanking_seqs, samp_models)
   }
 
   # index for all the variant calls
@@ -64,14 +67,14 @@ function(samp, samp_models) {
   # model used corresponding to variant call in each entry of m1
   m3=unlist(m[c(FALSE, FALSE, TRUE)])
   # assign model used in original dataframe
-  samp$model[m1]=m3
+  sample$model[m1]=m3
   # assign pvalue in original dataframe
-  samp$model_Pvalue[m1]=m2
+  sample$model_Pvalue[m1]=m2
     # NOTE THAT THIS IS BEFORE MULTIPLE TESTING
     # NOTE THAT IF MODEL IS NOT AVAILABLE, PVALUE IS 1. THIS IS NOT IDEAL.
 
-  # covert samp$model to RLE to save memory
-  samp$model <- methods::as(samp$model, "Rle")
+  # covert sample$model to RLE to save memory
+  sample$model <- methods::as(sample$model, "Rle")
 
-  return(samp)
+  return(sample)
 }

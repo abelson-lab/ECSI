@@ -4,10 +4,11 @@
 #'
 #' @param sample_names Character vector with the names of the samples
 #' @param sample_paths Character vector with the paths of the samples
+#' @param recurrent_mutations \code{VRanges} object with chr, pos ref, alt of frequently mutated alleles to remove from model input. \code{GRanges} objects are also accepted, in which case filtering will occur by position.
+#' @param memory_saving Logical. Option to save memory if you have a lot of samples (e.g. >500 with a 16Gb RAM machine), but takes twice as long
 #' @param exclude_cosmic_mutations Logical indicating whether or not to exclude cosmic mutations from flagged SNPs
 #' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
 #' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
-#' @param memory_saving Logical. Option to save memory if you have a lot of samples (e.g. >500 with a 16Gb RAM machine), but takes twice as long
 #' @export
 #' @examples
 #' \dontrun{
@@ -44,7 +45,7 @@
 
 
 get_flagged_alleles <-
-function(sample_names, sample_paths, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3, memory_saving = FALSE){
+function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = FALSE, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3){
 
   alleles <- VariantAnnotation::VRanges()
 
@@ -168,6 +169,12 @@ function(sample_names, sample_paths, exclude_cosmic_mutations = FALSE, cosmic_mu
     cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
     # removed flagged alleles overlapping with cosmic mutations
     flagged_alleles <- subtract_VRanges(flagged_alleles, cosmic_mutations)
+  }
+
+  # If user provides recurrent mutations
+  if(class(recurrent_mutations) %in% c("VRanges", "GRanges")){
+    # remove variants that overlap with cosmic mutations
+    model_input <- subtract_VRanges(flagged_alleles, recurrent_mutations)
   }
 
   return(flagged_alleles)

@@ -15,7 +15,6 @@
 #'	}
 
 ### TO DO LIST:
-#	- Check input to ensure it is suitable
 #	- Consider revamping the plots
 
 generate_model <-
@@ -31,7 +30,6 @@ function(i, data, groups, plot=FALSE){
   # tabulate alternate allele counts for this group into contingency table
   tab <- as.data.frame(table(VariantAnnotation::altDepth(data)[index]))
   # change alternate allele counts to numeric
-    ### TO DO: Is this necessary???
   tab$Var1 <- as.numeric(as.character(tab$Var1))
 
   # get alternate allele count
@@ -59,7 +57,6 @@ function(i, data, groups, plot=FALSE){
     graphics::title(paste("log(VAF) ~ log(Depth) for Signature:", groups$FlankingSeqGroup[i]))
 
     # colour in point with max Alternate Allele Frequency
-      ### TO DO: Is this necessary???
     max_alt_count <- which(VariantAnnotation::altDepth(s) == max(VariantAnnotation::altDepth(s)))
     graphics::points(x = log(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s))[max_alt_count],
            y = log(VariantAnnotation::altDepth(s)/(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s)))[max_alt_count], pch=19, col="red")
@@ -102,7 +99,7 @@ function(i, data, groups, plot=FALSE){
 
     # Replace tab with tabTmp
     tab <- tabTmp
-    # save alternate allele counts as x1?
+    # save alternate allele counts as x1
     x1 <- as.numeric(tab$Var1)
 
     #weibull
@@ -158,13 +155,8 @@ function(i, data, groups, plot=FALSE){
       if(length(indexEx)>1){
         # fit the distribution and get a rate estimate
         ### Fit the quantiles by a 0.9 probability vector
-        ### I DON'T KNOW WHAT THIS MEANS OR HOW TO OPTIMIZE IT ##################
         fitEx <- fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.9))
 
-        ##### I DON'T UNDERSTAND THIS ONE EITHER #############################
-        ### Do we just force in a rate estimate?
-        ### Why not choose between the available estimates?
-        ### Why not do this from the get go?
         Ex$V1[i] <- fitEx$estimate[[1]]
         indexEx <- i
       }
