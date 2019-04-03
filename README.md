@@ -6,19 +6,19 @@ Traditional variant calling methods utilize variant allele frequency (VAF) cutof
 
 # Installation
 
-To run ECSI, open R and install directly from github using the following commands: 
-
-```
-library(devtools)
-install_github("abelson-lab/ECSI")
-```
-
-Because some dependencies are from bioconductor and not CRAN, you may need to install extra packages first
+Some ECSI dependencies are from bioconductor and not CRAN, so you may need to install these extra packages first:
 
 ```
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install(c("BiocGenerics", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "VariantAnnotation", "GenomicScores"))
+```
+
+To install ECSI, open R and install directly from github using the following commands: 
+
+```
+library(devtools)
+install_github("abelson-lab/ECSI")
 ```
 
 To annotate variants with minor allele frequencies, download the appropriate [MafDB annotation package](https://bioconductor.org/packages/3.8/data/annotation/).
