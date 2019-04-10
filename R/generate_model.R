@@ -5,7 +5,6 @@
 #' @param i Index of the FlankingSeqGroup for which the model is being generated
 #' @param data \code{Dataframe} from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit
 #' @param groups \code{Dataframe} with 192 rows and 4 columns. First column contains the 192 trinucleotide contexts/FlankingSeqGroup
-#' @param plot Logical. Whether or not to output a plot of the error distribution with the model fit
 #' @return This function returns a \code{dataframe} with the following information:
 #' \itemize{
 #'	\item FlankingSeqGroup
@@ -14,11 +13,8 @@
 #'	\item Model parameter 2
 #'	}
 
-### TO DO LIST:
-#	- Consider revamping the plots
-
 generate_model <-
-function(i, data, groups, plot=FALSE){
+function(i, data, groups){
 
   # set up output for function.
     # i, fit, param estimate 1, param estimate 2
@@ -34,33 +30,6 @@ function(i, data, groups, plot=FALSE){
 
   # get alternate allele count
   altBases <- VariantAnnotation::altDepth(data)[index]
-
-  # Display Alt Allele count histogram and log(VAF) ~ log(Coverage)
-  if(plot==TRUE){
-    # histogram of alt allele count
-    graphics::hist(VariantAnnotation::altDepth(data)[index],breaks = 100)
-    # contingency table of alt allele count
-    table(altBases)
-
-    # get data corresponding to this signature
-    s <- data[index,]
-    # establish plot x and y limits
-    xmin <- min(log(VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s)))
-    xmax <- max(log(VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s)))
-    ymin <- min(log(VariantAnnotation::altDepth(s) / (VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s))))
-    ymax <- max(log(VariantAnnotation::altDepth(s) / (VariantAnnotation::refDepth(s) + VariantAnnotation::altDepth(s))))
-
-    # Plot the relationship between log(VAF) ~ log(Depth) for that signature
-    plot(x = log(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s)),
-         y = log(VariantAnnotation::altDepth(s)/(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s))),
-         xlab = "log( Read Depth )", ylab = "log( Variant Allele Frequency )", xlim = c(xmin,xmax), ylim = c(ymin,ymax))
-    graphics::title(paste("log(VAF) ~ log(Depth) for Signature:", groups$FlankingSeqGroup[i]))
-
-    # colour in point with max Alternate Allele Frequency
-    max_alt_count <- which(VariantAnnotation::altDepth(s) == max(VariantAnnotation::altDepth(s)))
-    graphics::points(x = log(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s))[max_alt_count],
-           y = log(VariantAnnotation::altDepth(s)/(VariantAnnotation::refDepth(s)+VariantAnnotation::altDepth(s)))[max_alt_count], pch=19, col="red")
-    }
 
   # If there are more than two different alternate allele counts for this seq group
   if(length(unique(altBases))>2){
@@ -88,85 +57,88 @@ function(i, data, groups, plot=FALSE){
       tab <- tab[-c(index5:dim(tab)[1]),]
     }
 
-    # Temp table with alt allele count from min value to max value.
-    # need to convert tab from factor -> character -> numeric
-    # Frequency column is empty.
-    tabTmp <- data.frame(Var1=c(min(as.numeric(as.character(tab$Var1))):max(as.numeric(as.character(tab$Var1)))),Freq=0)
-    # Fill in temp table with frequencies from tab
-    tabTmp$Freq <- tab$Freq[match(tabTmp$Var1,tab$Var1)]   # this is a Vlookup function for Var1
-    # Replace NA with 0
-    tabTmp$Freq[which(is.na(tabTmp$Freq))] <- 0
+    # if number of unique alternate allele bases still > 2
+    if(length(unique(altBases))>2){
 
-    # Replace tab with tabTmp
-    tab <- tabTmp
-    # save alternate allele counts as x1
-    x1 <- as.numeric(tab$Var1)
+      # Temp table with alt allele count from min value to max value.
+      # need to convert tab from factor -> character -> numeric
+      # Frequency column is empty.
+      tabTmp <- data.frame(Var1=c(min(as.numeric(as.character(tab$Var1))):max(as.numeric(as.character(tab$Var1)))),Freq=0)
+      # Fill in temp table with frequencies from tab
+      tabTmp$Freq <- tab$Freq[match(tabTmp$Var1,tab$Var1)]   # this is a Vlookup function for Var1
+      # Replace NA with 0
+      tabTmp$Freq[which(is.na(tabTmp$Freq))] <- 0
 
-    #weibull
-    fitW <- try(fitdistrplus::fitdist(altBases, distr = "weibull",method = "qme",probs=c(0.5,0.99)),silent=TRUE)
-    #exponential
-    fitEx <- try(fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.99)),silent=TRUE)
+      # Replace tab with tabTmp
+      tab <- tabTmp
+      # save alternate allele counts as x1
+      x1 <- as.numeric(tab$Var1)
 
-    # if mean reads less than 10,000
-    if(stats::median(VariantAnnotation::refDepth(data))<=10000){
-      # make sure that exponential fit worked
-      if(!inherits(fitEx, "try-error") & !is.na(fitEx$estimate[[1]])){
-        # Ex as empty matrix with 2 cols
-        Ex <- matrix(nrow = 0, ncol = 2)
-        # iterate through from 0.05 to Exp Fit rate estimate + 0.5, taking steps of 0.05
-        for(r in seq(0.05,fitEx$estimate[[1]]+0.5,0.05)){
-          # generate exponential distribution of alt count for each decay rate
-          Density <- stats::dexp(x1, rate = r)
+      #weibull
+      fitW <- try(fitdistrplus::fitdist(altBases, distr = "weibull",method = "qme",probs=c(0.5,0.99)),silent=TRUE)
+      #exponential
+      fitEx <- try(fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.99)),silent=TRUE)
 
-          # vector combining observed Alt Count with expected Alt Count from Density plot
-          x <- cbind(tab$Freq,(tab$Freq[1]/Density[1])*Density)
-          # ratio of Observed Alt Count over Expected Alt Count
-          a <- x[,1]/x[,2]
-          # find ratios less than 1: expected decay rate slower than observed
-          index <- which(a<1)
-          # if these ratios exist, get reciprocal of the ratios that are less than 1.
-          if(length(index>0)){a[which(a<1)] <- 1/a[which(a<1)]}
-          # if any of these ratios are now infinity (i.e. 0 observed alt count):
-          index <- which(a=="Inf")
-          # remove the ones that are infinity
-          if(length(index>0)){a <- a[-index]}
+      # if mean reads less than 10,000
+      if(stats::median(VariantAnnotation::refDepth(data))<=10000){
+        # make sure that exponential fit worked
+        if(!inherits(fitEx, "try-error") & !is.na(fitEx$estimate[[1]])){
+          # Ex as empty matrix with 2 cols
+          Ex <- matrix(nrow = 0, ncol = 2)
+          # iterate through from 0.05 to Exp Fit rate estimate + 0.5, taking steps of 0.05
+          for(r in seq(0.05,fitEx$estimate[[1]]+0.5,0.05)){
+            # generate exponential distribution of alt count for each decay rate
+            Density <- stats::dexp(x1, rate = r)
 
-          # get the sum of the ratios between expected and observed.
-          # the magnitude of the ratio represents discrepancy between expected and observed
-          # the best fit will be the smallest ratio (closest to 1)
-          sABS <- sum(a)
+            # vector combining observed Alt Count with expected Alt Count from Density plot
+            x <- cbind(tab$Freq,(tab$Freq[1]/Density[1])*Density)
+            # ratio of Observed Alt Count over Expected Alt Count
+            a <- x[,1]/x[,2]
+            # find ratios less than 1: expected decay rate slower than observed
+            index <- which(a<1)
+            # if these ratios exist, get reciprocal of the ratios that are less than 1.
+            if(length(index>0)){a[which(a<1)] <- 1/a[which(a<1)]}
+            # if any of these ratios are now infinity (i.e. 0 observed alt count):
+            index <- which(a=="Inf")
+            # remove the ones that are infinity
+            if(length(index>0)){a <- a[-index]}
 
-          # append this to the Exponential info for this SequenceContext.
-          # can use to identify optimal rate for exponential decay that fits the data
-          Ex <- rbind(Ex, c(r, sABS))
+            # get the sum of the ratios between expected and observed.
+            # the magnitude of the ratio represents discrepancy between expected and observed
+            # the best fit will be the smallest ratio (closest to 1)
+            sABS <- sum(a)
+
+            # append this to the Exponential info for this SequenceContext.
+            # can use to identify optimal rate for exponential decay that fits the data
+            Ex <- rbind(Ex, c(r, sABS))
+          }
         }
-      }
 
-      # Turn Ex into a data frame
-      Ex <- as.data.frame(Ex)
-      # Convert Ex columns (factors) into numeric
-      #for(j in 1:4){
-      for(j in 1:2){
-        Ex[,j] <- as.numeric(as.character(Ex[,j]))
-      }
-      # Which discrepancy ratio is the lowest (model best fits the data)
-      indexEx <- which(Ex$V2 == min(Ex$V2, na.rm = T))
-      # If there is more than one ideal model:
-      if(length(indexEx)>1){
-        # fit the distribution and get a rate estimate
-        ### Fit the quantiles by a 0.9 probability vector
-        fitEx <- fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.9))
+        # Turn Ex into a data frame
+        Ex <- as.data.frame(Ex)
+        # Convert Ex columns (factors) into numeric
+        #for(j in 1:4){
+        for(j in 1:2){
+          Ex[,j] <- as.numeric(as.character(Ex[,j]))
+        }
+        # Which discrepancy ratio is the lowest (model best fits the data)
+        indexEx <- which(Ex$V2 == min(Ex$V2, na.rm = T))
+        # If there is more than one ideal model:
+        if(length(indexEx)>1){
+          # fit the distribution and get a rate estimate
+          ### Fit the quantiles by a 0.9 probability vector
+          fitEx <- fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.9))
 
-        Ex$V1[i] <- fitEx$estimate[[1]]
-        indexEx <- i
-      }
-    }
+          Ex$V1[i] <- fitEx$estimate[[1]]
+          indexEx <- i
+        }
 
-    # Choose whether to use Exp or Weibull based on sequence depth
-    if(stats::median(VariantAnnotation::refDepth(data))<=10000){
-      l=paste(c(i,"exp",Ex$V1[indexEx], "NA" )) # exp for depth < 10000
-    } else {
-      l=paste(c(i,"weibull",fitW$estimate[[1]],fitW$estimate[[2]])) # weibull for depth > 10000
+        l=paste(c(i,"exp",Ex$V1[indexEx], "NA" )) # exp for depth < 10000
+
+      } else {
+
+        l=paste(c(i,"weibull",fitW$estimate[[1]],fitW$estimate[[2]])) # weibull for depth > 10000
+      }
     }
   }
 

@@ -3,7 +3,6 @@
 #' Generate all error models for each trinucleotide variant context. Fits error distribution with Exp model for <10,000 sequencing depth and Weibull model for >=10,000 depth.
 #'
 #' @param sample \code{VRanges} object of the varscan pileup2cns output annotated with variant context
-#' @param plots Logical. Whether or not to output plots of each error distribution with the model fits
 #' @importFrom foreach "%dopar%"
 #' @export
 #' @examples
@@ -15,7 +14,7 @@
 #'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 #'
 #' # Load and annotate samplele
-#' sample <- load_as_VRanges(samplele_name = "pt123",
+#' sample <- load_as_VRanges(sample_name = "pt123",
 #'     samplele_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
 #' sample <- sequence_context(sample)
 #' library(MafDb.gnomADex.r2.1.hs37d5)
@@ -39,7 +38,7 @@
 #'	}
 
 generate_all_models <-
-function(sample, plots = FALSE) {
+function(sample) {
 
   # Check that input is VRanges
   if(class(sample) != "VRanges"){ stop('Input "sample" needs to be VRanges object') }
@@ -49,7 +48,7 @@ function(sample, plots = FALSE) {
 
   # Generate models for each flanking sequence group
   m <- foreach::foreach(i=1:dim(groups)[1], .combine='c', .packages = c("VariantAnnotation","fitdistrplus")) %dopar% {
-    generate_model(i,sample,groups, plot=FALSE)
+    generate_model(i,sample,groups)
   }
 
   groups[,2:4] <- data.table::as.data.table(matrix(unlist(strsplit(m,split = " ")), ncol = 4, byrow = TRUE))[,2:4]
