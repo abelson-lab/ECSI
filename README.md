@@ -11,7 +11,7 @@ Some ECSI dependencies are from bioconductor and not CRAN, so you may need to in
 ```
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(c("BiocGenerics", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "VariantAnnotation", "GenomicScores"))
+BiocManager::install(c("BiocGenerics", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "VariantAnnotation", "GenomicScores", "maftools"))
 ```
 
 To install ECSI, open R and install directly from github using the following commands: 
