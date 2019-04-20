@@ -5,7 +5,7 @@ output: html_notebook
 
 # ECSI Example Workflow 
 
-```{r}
+```{r, results='hide', message=F, warning=F}
 # Load required packages
 library(VariantAnnotation)
 library(ECSI)
@@ -21,7 +21,7 @@ library(MafDb.gnomADex.r2.1.hs37d5) # MAF annotation - gnomAD exome hg19
 
 ### Get Sample Files
 
-These files are VarScan pileup2cns outputs with information on allele counts for every position that passed a certain depth.
+These files are VarScan pileup2cns outputs - see the paper's methods section for information on how to generate those files. 
 
 ```{r}
 dir="./rawdata/"
@@ -30,7 +30,7 @@ files=list.files(dir,pattern = "F1")[1:39]
 sample_paths <- paste0(dir, files)
 cat("First 5 Sample Paths: \n", head(sample_paths))
 
-sample_names <- substr(files,4,12)
+sample_names <- substr(files,4,12) # change this based on your file name
 cat("\n\nFirst 5 Sample Names: \n", head(sample_names))
 ```
 
@@ -41,14 +41,22 @@ These are tab delimited files with four columns: chr, pos, ref, alt
 Contains blood cancer associated mutations from COSMIC observed at least 10 times or 3 times, respectively. 
 As real mutations in our data are likely to occur at these hotspots, we will exclude these mutational sites from downstream error modelling. 
 
-For mutations associated with other cancers, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic)
+For updated cancer associated somatic mutations, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic)
+If you have no hotspot mutations that you wish to exclude from flagged allele generation and error model generation, feel free to skip this step.  
+
+```{r}
+hemeCOSMIC <- readRDS("hemCOSMIC.RDS")
+hemeCOSMIC
+```
 
 ```{r}
 # blood cancer mutations from COSMIC observed over 10 times
 hemeCOSMIC_10 <- load_recurrent_mutations("COSMIC_heme_freq10.txt", genome = "hg19")
 
 # blood cancer mutations from COSMIC observed over 3 times
-hemeCOSMIC_3 <- load_recurrent_mutations("COSMIC_heme_freq3.txt", genome = "hg19")
+hemeCOSMIC_3 <- load_recurrent_mutations("../HALT/COSMIC_heme_freq3.txt", genome = "hg19")
+
+hemeCOSMIC_3
 ```
 
 
@@ -64,8 +72,11 @@ This will employ an alternative method that consumes less memory but takes appro
 
 ```{r}
 flagged_alleles <- get_flagged_alleles(sample_names, sample_paths, recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)
+```
+```{r}
 flagged_alleles
 ```
+
 
 
 ### Load hotspot regions to call variants in
@@ -78,6 +89,10 @@ COSMIC_hotspot_range <- load_bed("hemeCOSMIC_hotspot_range.bed", genome = "hg19"
 COSMIC_hotspot_range
 ```
 
+If you want to call mutations in all covered positions, you can skip this step and remove the \code{intersect_VRanges(., COSMIC_hotspot_range) %>%} in the following code chunk. This will prevent it from filtering out any positions prior to variant calling. 
+
+If you wanted to generate variant calls only for specific mutations (i.e. specified ref + alt) rather than the position alone, you can load in your specific mutations in the "chr, pos, ref, alt" format using \code{load_recurrent mutations}. The \code{intersect_VRanges} function will recognize the format and adapt accordingly. 
+
 
 # Generate Models and Call Variants
 
@@ -86,6 +101,7 @@ I will be running this in parallel with the package DoParallel - using 4 cores t
 ```{r}
 # Make cluster and start
 cl <- makeCluster(4)
+clusterCall(cl, function(x) .libPaths(x), .libPaths()) # in case you are using a local library 
 registerDoParallel(cl)
  
 
@@ -110,7 +126,7 @@ for(i in 1:length(sample_paths)){
   samp_models <- samp %>%
     filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, MAPQ_cutoff_ref = 59,
                        MAPQ_cutoff_alt = 59, recurrent_mutations = hemeCOSMIC_10) %>%
-    generate_all_models(., plots = FALSE)
+    generate_all_models()
   
   # call variants using error models, and aggregate together
   variant_calls[[samp_name]] <- samp %>% 
@@ -142,10 +158,10 @@ Note that if we were scanning all sequenced positions for variants, we would rec
 
 ```{r}
 # unlist and correct pvalue (bonferroni)
-variant_calls_unlisted <- variant_calls %>% unlist() %>% correct_pvalues(., by_sample = FALSE)
+variant_calls_unlisted <- variant_calls %>% unlist() %>% correct_pvalues(., by_sample = TRUE)
 
 # show significant calls 
-significant_calls <- variant_calls_unlisted[which(variant_calls_unlisted$corrected_pvalue < 0.05)]
+significant_calls <- variant_calls_unlisted[which(variant_calls_unlisted$corrected_pvalue <= 0.05)]
 significant_calls
 ```
 
@@ -153,50 +169,21 @@ significant_calls
 ## Annotate Variants
 
 Here we will annotate the significant variants with the gene they reside on and their protein consequences.
-To start, we will load the following annotation packages specific to hg19:
+Annotation is available through Oncotator for hg19 variants. 
 
 ```{r}
-library(BSgenome.Hsapiens.UCSC.hg19)
-Hsapiens_hg19 <- BSgenome.Hsapiens.UCSC.hg19
-
-library(TxDb.Hsapiens.UCSC.hg19.knownGene)
-txdb_hg19 <- TxDb.Hsapiens.UCSC.hg19.knownGene
-
-library(biomaRt)
-mart <- useMart("ENSEMBL_MART_ENSEMBL","hsapiens_gene_ensembl")
+annotated <- annotate_variants(significant_calls)
+head(annotated)
 ```
-
-Next we will get the gene ids from TxDb and convert them to gene symbols with biomaRt (internet connection required)
 
 ```{r}
-# Get gene ids
-gene_ids <- subsetByOverlaps(genes(txdb_hg19), significant_calls)
-gene_ids$gene_name <- biomaRt::select(mart, keys = gene_ids$gene_id, columns = "hgnc_symbol", keytype= "entrezgene")
-
-# Add gene names to metadata in significant_calls
-significant_calls$GENE <- gene_ids[subjectHits(findOverlaps(significant_calls, gene_ids))]$gene_name
+str(annotated)
 ```
-
-Last we will predict protein coding consequences using predictCoding from the VariantAnnotation package, and annotate our variant calling output with it.
 
 ```{r}
-# Get amino acid changes
-pred <- predictCoding(significant_calls, txdb_hg19, Hsapiens_hg19, ignore.strand = TRUE)
-pred <- unique(pred)
-
-# Add annotation to metadata in significant_calls
-significant_calls$PROTEINLOC <- as.integer(pred[queryHits(findOverlaps(pred, significant_calls))]$PROTEINLOC)
-significant_calls$CONSEQUENCE <- pred[queryHits(findOverlaps(pred, significant_calls))]$CONSEQUENCE
-significant_calls$REFCODON <- pred[queryHits(findOverlaps(pred, significant_calls))]$REFCODON
-significant_calls$VARCODON <- pred[queryHits(findOverlaps(pred, significant_calls))]$VARCODON
-significant_calls$REFAA <- pred[queryHits(findOverlaps(pred, significant_calls))]$REFAA
-significant_calls$VARAA <- pred[queryHits(findOverlaps(pred, significant_calls))]$VARAA
+sessionInfo()
 ```
 
-For easier viewing, we can display this as a tibble object
 
-```{r}
-significant_calls %>% tibble::as_tibble()
-```
 
 
