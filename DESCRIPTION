@@ -1,9 +1,7 @@
 Package: ECSI
 Title: Error Correction by Signature Integration
 Version: 0.0.0.9000
-Authors@R: c(
-	person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")),
-	person("Sagi", "Abelson", email = "sagi.abelson@oicr.on.ca", role = c("aut", "ctb")))
+Authors@R: c(person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")), person("Sagi", "Abelson", email = "sagi.abelson@oicr.on.ca", role = c("aut", "ctb")))
 Description: Traditional variant calling methods utilize variant allele frequency (VAF) cutoffs
 	to call variants. These cutoffs are often set arbitrarily and the measure becomes 
 	problematic when trying to call at variants at low VAFs, where true biological variation 
