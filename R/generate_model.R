@@ -5,6 +5,7 @@
 #' @param i Index of the FlankingSeqGroup for which the model is being generated
 #' @param data \code{Dataframe} from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit
 #' @param groups \code{Dataframe} with 192 rows and 4 columns. First column contains the 192 trinucleotide contexts/FlankingSeqGroup
+#' @param model Specifying which error model (exp or weibull) to fit. Default is "auto".
 #' @return This function returns a \code{dataframe} with the following information:
 #' \itemize{
 #'	\item FlankingSeqGroup
@@ -14,7 +15,7 @@
 #'	}
 
 generate_model <-
-function(i, data, groups){
+function(i, data, groups, model = "auto"){
 
   # set up output for function.
     # i, fit, param estimate 1, param estimate 2
@@ -44,7 +45,7 @@ function(i, data, groups){
     index3 <- tab$Var1[index2+1]     # numerators of the ratios > 1.41
 
     # what is the ratio > 1.41 with the smallest numerator from above 14?
-    index4 <- min(which(index3>=14))     # index in index2 of ratio >1.41 with smallest numerator > 14
+    index4 <- suppressWarnings(min(which(index3>=14)))     # index in index2 of ratio >1.41 with smallest numerator > 14
 
     # what is the index of that numerator in the original contingency table
     index5 <- index2[index4]+1     # index of smallest number above 14 AND with ratio > 1.41 in contingency table
@@ -79,8 +80,8 @@ function(i, data, groups){
       #exponential
       fitEx <- try(fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.99)),silent=TRUE)
 
-      # if mean reads less than 10,000
-      if(stats::median(VariantAnnotation::refDepth(data))<=10000){
+      # if exponential model
+      if(model == "exp"){
         # make sure that exponential fit worked
         if(!inherits(fitEx, "try-error") & !is.na(fitEx$estimate[[1]])){
           # Ex as empty matrix with 2 cols

@@ -3,6 +3,7 @@
 #' Generate all error models for each trinucleotide variant context. Fits error distribution with Exp model for <10,000 sequencing depth and Weibull model for >=10,000 depth.
 #'
 #' @param sample \code{VRanges} object of the varscan pileup2cns output annotated with variant context
+#' @param model Specifying which error model (exp or weibull) to fit. Default is "auto".
 #' @importFrom foreach "%dopar%"
 #' @export
 #' @examples
@@ -38,7 +39,7 @@
 #'	}
 
 generate_all_models <-
-function(sample) {
+function(sample, model='auto') {
 
   # Check that input is VRanges
   if(class(sample) != "VRanges"){ stop('Input "sample" needs to be VRanges object') }
@@ -46,9 +47,16 @@ function(sample) {
   # create empty dataframe to store each flanking sequence group, the model used, and the estimated model parameters
   groups <- data.frame(FlankingSeqGroup=unique(sample$FlankingSeqGroup),model=NA,estimate1=NA,estimate2=NA)
 
+  # auto select model
+  if(model == "auto"){
+    alt_tab <- table(VariantAnnotation::altDepth(sample))
+    frequent <- names(alt_tab)[which.max(alt_tab)]
+    if(frequent == 1){ model <- "exp" }else{ model <- "weibull"}
+  }
+
   # Generate models for each flanking sequence group
   m <- foreach::foreach(i=1:dim(groups)[1], .combine='c', .packages = c("VariantAnnotation","fitdistrplus")) %dopar% {
-    generate_model(i,sample,groups)
+    generate_model(i,sample,groups,model)
   }
 
   groups[,2:4] <- data.table::as.data.table(matrix(unlist(strsplit(m,split = " ")), ncol = 4, byrow = TRUE))[,2:4]
@@ -61,3 +69,5 @@ function(sample) {
 
   return(all_models)
 }
+
+
