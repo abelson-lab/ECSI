@@ -64,7 +64,7 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
       # Add metadata
       S4Vectors::mcols(varscan_output) <- varscan_df %>%
         dplyr::mutate(VAF = Reads2 / (Reads1 + Reads2)) %>%
-        dplyr::select(VAF, Qual1, Qual2, MapQual1, MapQual2, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus)
+        dplyr::select(VAF, Qual1, Qual2, MapQual1, MapQual2, Reads1Plus, Reads1Minus, Reads2Plus, Reads2Minus, "Varscan_Pval" = Pvalue)
 
       # Convert quality scores to Rle to save memory
       varscan_output$Qual1 <- methods::as(varscan_output$Qual1, "Rle")

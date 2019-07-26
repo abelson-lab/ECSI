@@ -1,6 +1,7 @@
 #' Call All Variants
 #'
 #' Call all variants from the varscan pileup2cns output and the context-specific error models
+#' In the rare case that no model exists for that context (not enough alternate alleles), then this function uses the varscan assigned pvalue
 #'
 #' @param sample \code{VRanges} object of the varscan pileup2cns output annotated with variant context
 #' @param samp_models \code{Data.Frame} of context specific error models generated from \code{generate_all_models}
@@ -38,9 +39,6 @@
 #'	\item Model pvalue
 #'	}
 
-### TO DO LIST:
-#	- Check input to ensure it is suitable
-
 call_all_variants <-
 function(sample, samp_models) {
 
@@ -70,8 +68,11 @@ function(sample, samp_models) {
   sample$model[m1]=m3
   # assign pvalue in original dataframe
   sample$model_Pvalue[m1]=m2
-    # NOTE THAT THIS IS BEFORE MULTIPLE TESTING
-    # NOTE THAT IF MODEL IS NOT AVAILABLE, PVALUE IS 1. THIS IS NOT IDEAL.
+  # NOTE THAT THIS IS BEFORE MULTIPLE TESTING
+
+  # if no error model available for the context, use the varscan pvalue
+  sample[sample$model == "None"]$model_Pvalue = sample[sample$model == "None"]$Varscan_Pval
+  sample$Varscan_Pval <- NULL
 
   # covert sample$model to RLE to save memory
   sample$model <- methods::as(sample$model, "Rle")

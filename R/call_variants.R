@@ -13,8 +13,6 @@
 #'	\item Model pvalue
 #'	}
 
-### TO DO LIST:
-#	- Check input to ensure it is suitable
 
 call_variants <-
 function(i, data, flanking_seqs, error_models){
@@ -78,21 +76,21 @@ function(i, data, flanking_seqs, error_models){
       }
 
     ### If no error model exists for this flanking seq
-      # same as above, but the pvalue is just 1????
+      # assign NA for now. will replace with VarScan Pvalue
     } else{
       for(z in 1:length(alt_counts)){
         index2 <- which(VariantAnnotation::altDepth(data)[index1]==alt_counts[z])
         ind1 <- append(ind1,index1[index2])
-        ind2 <- append(ind2,rep(1,length(index1[index2])))
+        ind2 <- append(ind2,rep(NA,length(index1[index2])))
         ind3 <- append(ind3,rep("None",length(index1[index2])))
       }
     }
-  # if index doesn't exist, also make pvalue 1
+  # if index doesn't exist, also make pvalue NA
   } else{
     for(z in 1:length(alt_counts)){
       index2 <- which(VariantAnnotation::altDepth(data)[index1]==alt_counts[z])
       ind1 <- append(ind1,index1[index2])
-      ind2 <- append(ind2,rep(1,length(index1[index2])))
+      ind2 <- append(ind2,rep(NA,length(index1[index2])))
       ind3 <- append(ind3,rep("None",length(index1[index2])))
     }
   }
