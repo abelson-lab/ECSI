@@ -1,0 +1,189 @@
+---
+title: "espresso_workflow"
+output: html_notebook
+---
+
+# espresso Example Workflow 
+
+```{r, results='hide', message=F, warning=F}
+# Load required packages
+library(VariantAnnotation)
+library(espresso)
+
+# Load other packages
+library(doParallel)   # processing samples in parallel
+library(magrittr)   # piping and readibility
+library(MafDb.gnomADex.r2.1.hs37d5) # MAF annotation - gnomAD exome hg19
+```
+
+
+## Pre-Processing
+
+### Get Sample Files
+
+These files are VarScan pileup2cns outputs - see the paper's methods section for information on how to generate those files. 
+
+```{r}
+dir="./rawdata/"
+files=list.files(dir,pattern = "F1")[1:39]
+
+sample_paths <- paste0(dir, files)
+cat("First 5 Sample Paths: \n", head(sample_paths))
+
+sample_names <- substr(files,4,12) # change this based on your file name
+cat("\n\nFirst 5 Sample Names: \n", head(sample_names))
+	```
+
+
+### Load recurrent mutations
+
+These are tab delimited files with four columns: chr, pos, ref, alt
+Contains blood cancer associated mutations from COSMIC observed at least 10 times or 3 times, respectively. 
+As real mutations in our data are likely to occur at these hotspots, we will exclude these mutational sites from downstream error modelling. 
+
+For updated cancer associated somatic mutations, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic)
+If you have no hotspot mutations that you wish to exclude from flagged allele generation and error model generation, feel free to skip this step.  
+
+```{r}
+hemeCOSMIC <- readRDS("hemCOSMIC.RDS")
+hemeCOSMIC
+```
+
+```{r}
+# blood cancer mutations from COSMIC observed over 10 times
+hemeCOSMIC_10 <- load_recurrent_mutations("COSMIC_heme_freq10.txt", genome = "hg19")
+
+# blood cancer mutations from COSMIC observed over 3 times
+hemeCOSMIC_3 <- load_recurrent_mutations("../HALT/COSMIC_heme_freq3.txt", genome = "hg19")
+
+hemeCOSMIC_3
+```
+
+
+### Get flagged alleles
+
+Flagged alleles are alleles that appear at a high VAF in a significant number of samples within your cohort. These are very likely to be sequencing errors and should be interpreted with caution in variant calling results. However, if you are expecting recurrent mutations (e.g. Hematologic cancer associated mutations from COSMIC), then you can use the recurrent_mutations argument to exclude them from the flagging process.
+
+Here, we will input the recurrent mutations from COSMIC with a frequency >= 3 and ask get_flagged_alleles to ignore these alleles.
+Additionally, we are setting the memory_saving function to FALSE in this case because we are only processing 40 samples.
+
+If you are processing > 400 samples on a 16gb RAM device or > 200 samples on a 8gb RAM device, we recommend setting memory_saving = TRUE. 
+This will employ an alternative method that consumes less memory but takes approximately twice as long to run. 
+
+```{r}
+flagged_alleles <- get_flagged_alleles(sample_names, sample_paths, recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)
+```
+```{r}
+flagged_alleles
+```
+
+
+
+### Load hotspot regions to call variants in
+
+In this example we are only interested in examining hematologic malignancy associated mutations, so we've included a bed file with genomic positions flanking +/- 15bp from COSMIC hotspot mutations. This will allow us to limit mutation calling specifically to these hotspot locations. Note that the other positions are still used for error model generation.
+
+```{r}
+# Get COSMIC hotspot range to call mutations in
+COSMIC_hotspot_range <- load_bed("hemeCOSMIC_hotspot_range.bed", genome = "hg19")
+COSMIC_hotspot_range
+```
+
+If you want to call mutations in all covered positions, you can skip this step and remove the \code{intersect_VRanges(., COSMIC_hotspot_range) %>%} in the following code chunk. This will prevent it from filtering out any positions prior to variant calling. 
+
+If you wanted to generate variant calls only for specific mutations (i.e. specified ref + alt) rather than the position alone, you can load in your specific mutations in the "chr, pos, ref, alt" format using \code{load_recurrent mutations}. The \code{intersect_VRanges} function will recognize the format and adapt accordingly. 
+
+
+# Generate Models and Call Variants
+
+I will be running this in parallel with the package DoParallel - using 4 cores to speed up the job. 
+
+```{r}
+# Make cluster and start
+cl <- makeCluster(4)
+clusterCall(cl, function(x) .libPaths(x), .libPaths()) # in case you are using a local library 
+registerDoParallel(cl)
+
+
+# initialize variant calls
+variant_calls <- VRangesList()
+
+# Try for all files
+for(i in 1:length(sample_paths)){
+
+# get sample name and path
+	samp_path <- sample_paths[i]
+	samp_name <- sample_names[i]
+
+	print(samp_name)
+
+# get sample as VRanges and annotate with sequence context and MAF
+	samp <- load_as_VRanges(samp_name, samp_path) %>%
+		sequence_context(., genome = "hg19") %>%
+		annotate_MAF(., MafDb.gnomADex.r2.1.hs37d5::MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
+
+# use sample to generate the error models
+	samp_models <- samp %>%
+		filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, MAPQ_cutoff_ref = 59,
+						MAPQ_cutoff_alt = 59, recurrent_mutations = hemeCOSMIC_10) %>%
+		generate_all_models()
+
+# call variants using error models, and aggregate together
+	variant_calls[[samp_name]] <- samp %>% 
+		intersect_VRanges(., COSMIC_hotspot_range) %>% 
+		call_all_variants(., samp_models)
+
+# cleanup
+	rm(samp_name, samp, samp_models)
+}
+
+
+# Unregister Cluster
+stopCluster(cl)
+rm(cl)
+registerDoSEQ()
+```
+
+
+The output is a vranges list object with the variant calls for each samples
+
+```{r}
+# Output is in vranges list
+variant_calls
+```
+
+
+We can unlist that vranges object, conduct the pvalue correction (bonferroni across all samples), and keep the significant calls. 
+Note that if we were scanning all sequenced positions for variants, we would recommend applying bonferonni correction by sample. 
+
+```{r}
+# unlist and correct pvalue (bonferroni)
+variant_calls_unlisted <- variant_calls %>% unlist() %>% correct_pvalues(., by_sample = TRUE)
+
+# show significant calls 
+significant_calls <- variant_calls_unlisted[which(variant_calls_unlisted$corrected_pvalue <= 0.05)]
+significant_calls
+```
+
+
+## Annotate Variants
+
+Here we will annotate the significant variants with the gene they reside on and their protein consequences.
+Annotation is available through Oncotator for hg19 variants. 
+
+```{r}
+annotated <- annotate_variants(significant_calls)
+head(annotated)
+```
+
+```{r}
+str(annotated)
+```
+
+```{r}
+sessionInfo()
+```
+
+
+
+
