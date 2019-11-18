@@ -1,5 +1,5 @@
 ---
-title: "espresso_workflow"
+title: "Espresso_workflow"
 output: html_notebook
 ---
 
@@ -8,7 +8,7 @@ output: html_notebook
 ```{r, results='hide', message=F, warning=F}
 # Load required packages
 library(VariantAnnotation)
-library(espresso)
+library(Espresso)
 
 # Load other packages
 library(doParallel)   # processing samples in parallel
