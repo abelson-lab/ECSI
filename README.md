@@ -11,7 +11,7 @@ Some Espresso dependencies are from bioconductor and not CRAN, so you may need t
 ```
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(c("BiocGenerics", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "VariantAnnotation", "GenomicScores", "maftools"))
+BiocManager::install(c("BiocGenerics", "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Hsapiens.UCSC.hg38", "VariantAnnotation", "GenomicScores", "maftools", "cellbaseR"))
 ```
 
 To install Espresso, open R and install directly from github using the following commands: 

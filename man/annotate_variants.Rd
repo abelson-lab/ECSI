@@ -4,20 +4,24 @@
 \alias{annotate_variants}
 \title{Annotate Variants}
 \usage{
-annotate_variants(variant_calls)
+annotate_variants(variant_calls, genome = c("hg19", "hg38"), batchsize = 80)
 }
 \arguments{
 \item{variant_calls}{\code{VRanges} object from call_all_variants output}
+
+\item{genome}{Genome of input object, accepts either hg19 or hg38}
+
+\item{batchsize}{Size of variant batches to send to CellBase - the API will time out if processing >100 variants at a time. If it does time out, reduce the batchsize.}
 }
 \value{
-This function returns a \code{DataFrame} object with annotations for each mutation
+This function returns a \code{DataFrame} object with annotations for each variant.
 }
 \description{
-Wrapper function for oncotate from maftools package to facilitate compatibility with VRanges.
-Returns a dataframe with mutations annotated by Oncotator - requires internet connection. Only compatible with hg19 genome.
+Wrapper function for variant annotation from CellBase through cellbaseR
+Returns a dataframe with mutations annotated by CellBase - requires internet connection.
 }
 \examples{
 \dontrun{
-annotated_variants <- variant_calls \%>\% annotate_variants()
+annotated_variants <- annotate_variants(variant_calls, genome="hg19")
 }
 }

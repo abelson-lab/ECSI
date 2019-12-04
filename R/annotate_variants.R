@@ -1,54 +1,49 @@
 #' Annotate Variants
 #'
-#' Wrapper function for oncotate from maftools package to facilitate compatibility with VRanges.
-#' Returns a dataframe with mutations annotated by Oncotator - requires internet connection. Only compatible with hg19 genome.
+#' Wrapper function for variant annotation from CellBase through cellbaseR
+#' Returns a dataframe with mutations annotated by CellBase - requires internet connection.
 #'
 #' @param variant_calls \code{VRanges} object from call_all_variants output
-#' @importFrom dplyr "%>%"
+#' @param genome Genome of input object, accepts either hg19 or hg38
+#' @param batchsize Size of variant batches to send to CellBase - the API will time out if processing >100 variants at a time. If it does time out, reduce the batchsize.
 #' @export
 #' @examples
 #' \dontrun{
-#' annotated_variants <- variant_calls %>% annotate_variants()
+#' annotated_variants <- annotate_variants(variant_calls, genome="hg19")
 #' }
-#' @return This function returns a \code{DataFrame} object with annotations for each mutation
+#' @return This function returns a \code{DataFrame} object with annotations for each variant.
 
 annotate_variants <-
-function(variant_calls) {
+function(variant_calls, genome = c("hg19", "hg38"), batchsize=80){
 
-  # Check that input is VRanges
+  # input checks
+  if(length(genome) > 1){ stop("Need to specify genome, either hg19 or hg38.") }
   if(class(variant_calls) != "VRanges"){ stop('Input "variant_calls" needs to be VRanges object') }
+  if(class(batchsize) != "numeric"){ stop('Input "batchsize" needs to be numeric') }
+  genome = ifelse(tolower(genome) %in% c("hg19", "grch37"), "GRCh37",
+                  ifelse(tolower(genome) %in% c("hg38", "grch38"), "GRCh38", genome))
 
-  # Check that genome is hg19
-  if(!(GenomeInfoDb::genome(variant_calls) %in% c("hg19", "Hg19", "HG19", "GRCh37", "GRCH37", "grch37"))){ stop('Genome needs to be hg19') }
+  # set up variant list
+  chr <- as.character(seqnames(variant_calls)) %>% stringr::str_replace("chr", "")
+  pos <- start(ranges(variant_calls))
+  sub <- paste(ref(variant_calls), alt(variant_calls),sep = ":")
+  var_ids <- paste(chr, pos, sub, sep=":")
 
-  # get annotation of unique alleles in variant_calls
-  anno_full <- variant_calls %>%
-    dplyr::as_tibble() %>%
-    dplyr::select("chr" = seqnames, start, end, "ref_allele" = ref, "alt_allele" = alt) %>%
-    unique() %>%
-    maftools::oncotate()
+  # split into chunks (cellbaseR won't process >100 vars at a time)
+  var_ids <- split(var_ids, ceiling(seq_along(var_ids)/batchsize))
 
-  # keep the relevant columns only
-  anno_slim <- anno_full %>%
-    dplyr::mutate(chr = paste0("chr", chr),
-                  start = as.integer(start),
-                  end = as.integer(end)) %>%
-    dplyr::select(chr, start, end, "ref" = ref_allele, "alt" = alt_allele,
-                  Hugo_Symbol, Strand, Variant_Classification, dbSNP_RS,
-                  transcript_id, transcript_strand, transcript_exon, transcript_change, codon_change, protein_change,
-                  HGVS_genomic_change, HGVS_coding_DNA_change, dbNSFP_aapos_SIFT, dbNSFP_SIFT_pred, dbNSFP_SIFT_score,
-                  `HGNC_Approved Name`, HGNC_Chromosome, `HGNC_Gene family description`, COSMIC_Tissue_tissue_types_affected,
-                  COSMIC_Tissue_total_alterations_in_gene, COSMIC_n_overlapping_mutations, COSMIC_overlapping_mutation_AAs,
-                  COSMIC_overlapping_primary_sites, `CGC_Cancer Germline Mut`, `CGC_Cancer Somatic Mut`,
-                  `CGC_Cancer Syndrome`, `CGC_Tumour Types  (Somatic Mutations)`, `CGC_Tumour Types (Germline Mutations)`,
-                  UniProt_GO_Biological_Process, UniProt_GO_Cellular_Component, UniProt_GO_Molecular_Function)
+  # set up cellbaseR with first batch
+  cb <- cellbaseR::CellBaseR()
+  cbparam <- cellbaseR::CellBaseParam(assembly = genome)
+  annotated <- cellbaseR::getVariant(object=cb, ids=var_ids[[1]], resource="annotation", param=cbparam)
 
-  # left join samp with annotation
-  annotated <- variant_calls %>%
-    dplyr::as_tibble() %>%
-    dplyr::rename("chr" = seqnames) %>%
-    dplyr::mutate(chr = as.character(chr)) %>%
-    dplyr::left_join(., anno_slim, by = c("chr", "start", "end", "ref", "alt"))
+  # iterate through subsequent batches of variants and append annotated output
+  if(length(var_ids) > 1){
+    for(vars in var_ids[2:length(var_ids)]){
+      res = cellbaseR::getVariant(object=cb, ids=vars, resource="annotation", param=cbparam)
+      annotated = vctrs::vec_rbind(annotated, res)
+    }
+  }
 
   return(annotated)
 }

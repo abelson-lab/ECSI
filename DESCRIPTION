@@ -1,18 +1,18 @@
-Package: ECSI
-Title: Error Correction by Signature Integration
+Package: Espresso
+Title: Espresso - Error Suppression through Contextual Signature Integration
 Version: 0.0.0.9000
 Authors@R: c(person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")), person("Sagi", "Abelson", email = "sagi.abelson@oicr.on.ca", role = c("aut", "ctb")))
 Description: Traditional variant calling methods utilize variant allele frequency (VAF) cutoffs
 	to call variants. These cutoffs are often set arbitrarily and the measure becomes 
 	problematic when trying to call at variants at low VAFs, where true biological variation 
-	becomes hard to distinguish from sequencing error. The 'ECSI' package employs a novel 
+	becomes hard to distinguish from sequencing error. The 'Espresso' package employs a novel 
 	variant calling approach that models sequencing error distributions across 192 trinucleotide 
 	contexts and conducts variant calling by comparing each putative variant to its corresponding
 	contextual error distribution. This demonstrates superior sensitivity and specificity over 
 	existing variant calling methods and bolsters our ability to accurately distinguish signal 
 	from noise at very low VAFs.
 Depends: R (>= 3.5.0)
-Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, stringr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer, GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, GenomicScores, utils, BiocGenerics, maftools
+Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, stringr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer, GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, GenomicScores, utils, vctrs, stats, BiocGenerics, maftools, cellbaseR
 License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,4 +21,4 @@ Suggests:
 	rmarkdown,
 	testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0
