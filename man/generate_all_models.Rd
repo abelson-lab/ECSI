@@ -4,10 +4,12 @@
 \alias{generate_all_models}
 \title{Generate All Models}
 \usage{
-generate_all_models(sample)
+generate_all_models(sample, model = "auto")
 }
 \arguments{
 \item{sample}{\code{VRanges} object of the varscan pileup2cns output annotated with variant context}
+
+\item{model}{Specifying which error model (exp or weibull) to fit. Default is "auto".}
 }
 \value{
 This function returns a \code{dataframe} with the following information:
@@ -26,8 +28,8 @@ Generate all error models for each trinucleotide variant context. Fits error dis
 
 # Get flagged alleles and cosmic mutations
 heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
-flagged_alleles <- get_flagged_alleles(all_samplele_names, all_samplele_paths, exclude_cosmic_mutations = TRUE,
-    cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+flagged_alleles <- get_flagged_alleles(all_samplele_names, all_samplele_paths,
+    exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 
 # Load and annotate samplele
 sample <- load_as_VRanges(sample_name = "pt123",
@@ -38,8 +40,9 @@ annotated_sample <- annotate_MAF(varscan_output = variants,
     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
 
 # Filter model input
-sample_model_input <- filter_model_input(model_input = annotated_sample, flagged_alleles = flagged_alleles,
-    filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+sample_model_input <- filter_model_input(model_input = annotated_sample,
+    flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
+    cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
 
 # Generate the error models for this samplele
 sample_models <- generate_all_models(sample = sample_model_input, plots = FALSE)

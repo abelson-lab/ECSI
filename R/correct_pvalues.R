@@ -19,10 +19,10 @@ function(variant_calls, method = 'fdr'){
 
   # if VRangesList, correct pvalues by sample
   if(class(variant_calls) %in% c("VRangesList", "SimpleVRangesList")){
-    variant_calls <- S4Vectors::endoapply(variant_calls, function(x){x$corrected_pvalue <- p.adjust(x$model_Pvalue, method); return(x)})
+    variant_calls <- S4Vectors::endoapply(variant_calls, function(x){x$corrected_pvalue <- stats::p.adjust(x$model_Pvalue, method); return(x)})
 
   } else if(class(variant_calls) %in% c("VRanges")){
-    variant_calls$corrected_pvalue <- p.adjust(x$model_Pvalue, method)
+    variant_calls$corrected_pvalue <- stats::p.adjust(variant_calls$model_Pvalue, method)
 
   } else {
     stop('input "variant_calls" needs to be of class "VRanges" or "VRangesList"')

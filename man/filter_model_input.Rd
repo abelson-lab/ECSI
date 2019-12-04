@@ -4,11 +4,18 @@
 \alias{filter_model_input}
 \title{Filter Model Input}
 \usage{
-filter_model_input(model_input, flagged_alleles = NA,
-  MAF_cutoff = 0.001, VAF_cutoff = 0.05,
-  filter_cosmic_mutations = FALSE, cosmic_mutations,
-  cosmic_mut_frequency = 10, MAPQ_cutoff_ref = 59,
-  MAPQ_cutoff_alt = 59, recurrent_mutations = NA)
+filter_model_input(
+  model_input,
+  flagged_alleles = NA,
+  MAF_cutoff = 0.001,
+  VAF_cutoff = 0.05,
+  filter_cosmic_mutations = FALSE,
+  cosmic_mutations,
+  cosmic_mut_frequency = 10,
+  MAPQ_cutoff_ref = 59,
+  MAPQ_cutoff_alt = 59,
+  recurrent_mutations = NA
+)
 }
 \arguments{
 \item{model_input}{\code{VRanges} object annotated with mutation context and population minor allele frequency}
@@ -41,8 +48,8 @@ Filter variants to remove flagged alleles, polymorphisms, cosmic mutations, and 
 \dontrun{
 # Get flagged alleles and cosmic mutations
 heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
-flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
-    cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
+    exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 
 # Load and annotate sample
 samp <- load_as_VRanges(sample_name = "pt123",
@@ -53,7 +60,8 @@ annotated_samp <- annotate_MAF(varscan_output = variants,
     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
 
 # Filter model input
-samp_model_input <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles,
-    filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+samp_model_input <- filter_model_input(model_input = annotated_samp,
+    flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
+    cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
 }
 }

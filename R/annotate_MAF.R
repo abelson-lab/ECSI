@@ -49,6 +49,7 @@ annotate_MAF <-
     # Annotate MAF
     sample_anno <- GenomicScores::gscores(MAF_database, sample)
     GenomeInfoDb::seqlevelsStyle(sample_anno) <- "UCSC"
+    sample_anno$MAF <- sample_anno$AF; sample_anno$AF <- NULL
 
     # convert genome name back to input
     if(genome == "hg19"){

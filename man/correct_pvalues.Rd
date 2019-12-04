@@ -4,23 +4,24 @@
 \alias{correct_pvalues}
 \title{p-value correction}
 \usage{
-correct_pvalues(variant_calls, by_sample = FALSE)
+correct_pvalues(variant_calls, method = "fdr")
 }
 \arguments{
-\item{variant_calls}{\code{VRanges} object from call_all_variants output}
+\item{variant_calls}{\code{VRangesList} or \code{VRanges} object from call_all_variants output}
 
-\item{by_sample}{Logical. Option to apply multiple testing correction by sample.}
+\item{method}{pvalue correction method to pass onto p.adjust}
 }
 \value{
-This function returns a \code{VRanges} object with a new metadata column: corrected_pvalue
+This function returns a \code{VRangesList} or \code{VRanges} object with a new metadata column: corrected_pvalue
 }
 \description{
-Apply bonferroni multiple testing correction to model p-values for each position.
+Apply multiple testing correction (FDR or Bonferroni) to model p-values for each position.
+If input is VRangesList, then pvalue correction will be done on a sample-by-sample basis. If input is VRanges, then pvalue correction will be done across all samples.
 For mutation calling in a narrow genomic range of specified hotspots, we recommend correcting across all samples.
 For mutation calling across all genomic positions sequenced, we recommend applying correction by sample.
 }
 \examples{
 \dontrun{
-variants_corrected <- correct_pvalue(variant_calls = variants, by_sample = FALSE)
+variants_corrected <- correct_pvalue(variant_calls = variants, method = 'fdr')
 }
 }

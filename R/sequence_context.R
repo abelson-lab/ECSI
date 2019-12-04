@@ -37,11 +37,11 @@ function(sample, genome = c("hg19", "hg38"), context = 3) {
   }
 
   # Creating FlankingSeqGroup
-      # C > T with 5' A and 3' G would be represented as "A[CT]G".
-      # 192 groups in total when using trinucleotide context (recommended)
+  # C > T with 5' A and 3' G would be represented as "A[CT]G".
+  # 192 groups in total when using trinucleotide context (recommended)
   sample$FlankingSeqGroup <- paste0(as.character(Biostrings::subseq(sample$context, start = 1, end = (context-1)/2)),
-                     "[", VariantAnnotation::ref(sample), VariantAnnotation::alt(sample), "]",
-                     as.character(Biostrings::subseq(sample$context, start = (context-1)/2 + 2, end = context)))
+                                    "[", VariantAnnotation::ref(sample), VariantAnnotation::alt(sample), "]",
+                                    as.character(Biostrings::subseq(sample$context, start = (context-1)/2 + 2, end = context)))
 
   # Remove context to save memory
   sample$context <- NULL

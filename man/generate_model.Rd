@@ -4,7 +4,7 @@
 \alias{generate_model}
 \title{Generate Model}
 \usage{
-generate_model(i, data, groups)
+generate_model(i, data, groups, model = "auto")
 }
 \arguments{
 \item{i}{Index of the FlankingSeqGroup for which the model is being generated}
@@ -12,6 +12,8 @@ generate_model(i, data, groups)
 \item{data}{\code{Dataframe} from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit}
 
 \item{groups}{\code{Dataframe} with 192 rows and 4 columns. First column contains the 192 trinucleotide contexts/FlankingSeqGroup}
+
+\item{model}{Specifying which error model (exp or weibull) to fit. Default is "auto".}
 }
 \value{
 This function returns a \code{dataframe} with the following information:

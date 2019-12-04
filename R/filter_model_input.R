@@ -17,8 +17,8 @@
 #' \dontrun{
 #' # Get flagged alleles and cosmic mutations
 #' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
-#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
-#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
+#'     exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 #'
 #' # Load and annotate sample
 #' samp <- load_as_VRanges(sample_name = "pt123",
@@ -29,8 +29,9 @@
 #'     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
 #'
 #' # Filter model input
-#' samp_model_input <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles,
-#'     filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+#' samp_model_input <- filter_model_input(model_input = annotated_samp,
+#'     flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
+#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
 #' }
 #' @return This function returns a filtered \code{VRanges} object.
 #'
@@ -44,7 +45,7 @@ function(model_input, flagged_alleles = NA, MAF_cutoff = 0.001, VAF_cutoff = 0.0
   if(class(model_input) != "VRanges"){ stop('Input "model_input" needs to be VRanges object') }
 
   # keep variants below MAF cutoff (keep NA because that means 0)
-  model_input <- model_input[which(model_input$AF < MAF_cutoff | is.na(model_input$AF)),]
+  model_input <- model_input[which(model_input$MAF < MAF_cutoff | is.na(model_input$MAF)),]
   # keep variants below VAF cutoff
   model_input <- model_input[which(model_input$VAF < VAF_cutoff),]
 

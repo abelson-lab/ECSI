@@ -4,9 +4,15 @@
 \alias{get_flagged_alleles}
 \title{Get Flagged Alleles}
 \usage{
-get_flagged_alleles(sample_names, sample_paths, recurrent_mutations = NA,
-  memory_saving = FALSE, exclude_cosmic_mutations = FALSE,
-  cosmic_mutations, cosmic_mut_frequency = 3)
+get_flagged_alleles(
+  sample_names,
+  sample_paths,
+  recurrent_mutations = NA,
+  memory_saving = FALSE,
+  exclude_cosmic_mutations = FALSE,
+  cosmic_mutations,
+  cosmic_mut_frequency = 3
+)
 }
 \arguments{
 \item{sample_names}{Character vector with the names of the samples}
@@ -52,7 +58,8 @@ all_sample_names <- substr(file_names, 1, 10)
 all_sample_paths <- paste0("./data/", file_names)
 
 # get flagged alleles
-flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
-     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3, memory_saving = FALSE)
+flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
+    exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC,
+    cosmic_mut_frequency = 3, memory_saving = FALSE)
 }
 }

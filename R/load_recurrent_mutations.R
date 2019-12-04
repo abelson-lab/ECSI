@@ -7,7 +7,7 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' mutations_to_exclude <- load_recurrent_mutations(file = "COSMIC_Heme_mutations_freq10.txt", genome = "hg19")
+#' recurrent <- load_recurrent_mutations(file = "COSMIC_Heme_mutations_freq10.txt", genome = "hg19")
 #' }
 #' @return This function returns a \code{VRanges} object including:
 #' \itemize{

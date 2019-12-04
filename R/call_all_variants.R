@@ -11,8 +11,8 @@
 #' \dontrun{
 #' # Get flagged alleles and cosmic mutations
 #' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
-#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
-#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
+#'     exclude_cosmic_mutations = TRUE,cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 #'
 #' # Load and annotate sample
 #' sample <- load_as_VRanges(sample_name = "pt123",
@@ -23,8 +23,9 @@
 #'     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
 #'
 #' # Filter model input
-#' samp_model_input <- filter_model_input(model_input = annotated_samp, flagged_alleles = flagged_alleles,
-#'     filter_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+#' samp_model_input <- filter_model_input(model_input = annotated_samp,
+#'     flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
+#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
 #'
 #' # Generate the error models for this sample
 #' samp_models <- generate_all_models(sample = samp_model_input, plots = FALSE)

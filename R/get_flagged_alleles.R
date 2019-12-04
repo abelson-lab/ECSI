@@ -23,8 +23,9 @@
 #' all_sample_paths <- paste0("./data/", file_names)
 #'
 #' # get flagged alleles
-#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths, exclude_cosmic_mutations = TRUE,
-#'      cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3, memory_saving = FALSE)
+#' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
+#'     exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC,
+#'     cosmic_mut_frequency = 3, memory_saving = FALSE)
 #' }
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
