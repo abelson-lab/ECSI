@@ -368,7 +368,7 @@ hemeCOSMIC_3</code></pre>
 ## [1] 1
 ## [1] 182</code></pre>
 <pre class="r"><code>flagged_alleles</code></pre>
-<pre><code>## VRanges object with 1840 ranges and 0 metadata columns:
+<pre><code>## VRanges object with 1840 ranges and 34 metadata columns:
 ##          seqnames    ranges strand         ref              alt     totalDepth
 ##             &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; &lt;character&gt; &lt;characterOrRle&gt; &lt;integerOrRle&gt;
 ##      [1]     chr1 115256623      *           G                T           &lt;NA&gt;
@@ -382,19 +382,175 @@ hemeCOSMIC_3</code></pre>
 ##   [1838]     chr8 117869492      *           T                C           &lt;NA&gt;
 ##   [1839]     chr2  25457192      *           G                C           &lt;NA&gt;
 ##   [1840]     chrX  15841230      *           C                G           &lt;NA&gt;
-##                refDepth       altDepth   sampleNames softFilterMatrix
-##          &lt;integerOrRle&gt; &lt;integerOrRle&gt; &lt;factorOrRle&gt;         &lt;matrix&gt;
-##      [1]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##      [2]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##      [3]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##      [4]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##      [5]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##      ...            ...            ...           ...              ...
-##   [1836]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##   [1837]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##   [1838]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##   [1839]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
-##   [1840]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                 
+##                refDepth       altDepth   sampleNames softFilterMatrix |
+##          &lt;integerOrRle&gt; &lt;integerOrRle&gt; &lt;factorOrRle&gt;         &lt;matrix&gt; |
+##      [1]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##      [2]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##      [3]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##      [4]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##      [5]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##      ...            ...            ...           ...              ... .
+##   [1836]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##   [1837]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##   [1838]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##   [1839]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##   [1840]           &lt;NA&gt;           &lt;NA&gt;          &lt;NA&gt;                  |
+##                         ptx02                ptx03                ptx04
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]  0.00145933977455717   0.0014014598540146 0.000815217391304348
+##      [2] 0.000997464777025061  0.00158106798592339 0.000560428849902534
+##      [3] 0.000308410803189849   0.0876308747499416  0.00032598065848093
+##      [4]  0.00164025031646134  0.00151636592075905  0.00167446356747052
+##      [5] 0.000712220872261092 0.000562357812939342 0.000710339384372534
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt; 0.000171068838100452
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1838]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx05                ptx06               ptx07
+##                     &lt;numeric&gt;            &lt;numeric&gt;           &lt;numeric&gt;
+##      [1] 0.000876394647251154                 &lt;NA&gt; 0.00122996013232675
+##      [2] 0.000340623879526712 0.000586744273375892 0.00032789752109474
+##      [3] 0.000873570520965693 0.000743399128428608 0.00028623222974907
+##      [4]  0.00104505341384115   0.0011917950783899 0.00116045066615744
+##      [5]  0.00130120089999729  0.00122531353611071                &lt;NA&gt;
+##      ...                  ...                  ...                 ...
+##   [1836]    0.478621275108298 0.000209684183360754                &lt;NA&gt;
+##   [1837]                 &lt;NA&gt; 0.000151641519448025                &lt;NA&gt;
+##   [1838]                 &lt;NA&gt; 3.54013629524737e-05                &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;   0.013953388372893
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                &lt;NA&gt;
+##                         ptx08                ptx09                ptx10
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1] 0.000950118764845606  0.00256964099508417  0.00169465413649669
+##      [2] 0.000378026358747014  0.00159246018849529 0.000550318652251868
+##      [3]  0.00040949278734295 0.000507836441642588 0.000876424189307625
+##      [4]  0.00151783455603339  0.00163599700701323   0.0010010140141962
+##      [5]  0.00083796754780224 0.000724217844727694  0.00106157112526539
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;    0.391304347826087                 &lt;NA&gt;
+##   [1838] 5.03581725019199e-05 0.000162098637020627                 &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx11               ptx12                ptx13
+##                     &lt;numeric&gt;           &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]  0.00117744024490757                &lt;NA&gt;  0.00101237345331834
+##      [2] 0.000766506317069303                &lt;NA&gt;                 &lt;NA&gt;
+##      [3] 0.000442726011628937                &lt;NA&gt;   0.0021990989058142
+##      [4]  0.00107437251088265  0.0012469724946644 0.000985593557992744
+##      [5] 0.000699926118909671 0.00179037672510257  0.00030633500796471
+##      ...                  ...                 ...                  ...
+##   [1836]                 &lt;NA&gt;                &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                &lt;NA&gt;                 &lt;NA&gt;
+##   [1838] 8.29153020189876e-05                &lt;NA&gt; 0.000112665900538543
+##   [1839]                 &lt;NA&gt;                &lt;NA&gt;                 &lt;NA&gt;
+##   [1840] 0.000623441396508728                &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx14                ptx15                ptx16
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]  0.00100934976625584 0.000864304235090752 0.000538996388724196
+##      [2] 0.000694813422160461                 &lt;NA&gt;  0.00107821555325936
+##      [3]   0.0014557502133427 0.000382379932701132   0.0012224259598822
+##      [4]  0.00107114901330697  0.00190681224050438  0.00172727697119649
+##      [5]                 &lt;NA&gt;                 &lt;NA&gt;  0.00149659863945578
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt; 0.000284927343527401
+##   [1838]                 &lt;NA&gt;                 &lt;NA&gt; 0.000247641774916139
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx17                ptx18                ptx19
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]                 &lt;NA&gt; 0.000846247421589887  0.00139454454175266
+##      [2] 0.000625831182038645  0.00105009334163037 0.000459052515607786
+##      [3]                 &lt;NA&gt; 0.000726849832824538    0.371187576807061
+##      [4]  0.00138822700619522  0.00138088376560999  0.00140977443609023
+##      [5]  0.00114162110196479  0.00177925730356425  0.00117664362406236
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1838]                 &lt;NA&gt; 0.000200400801603206 9.46611132146914e-05
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx20                ptx21                ptx22
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1] 0.000100220485067148 0.000973283371453599 0.000306497752349816
+##      [2]                 &lt;NA&gt;                 &lt;NA&gt; 0.000371576577561146
+##      [3] 0.000363702491362066  0.00244834209248823                 &lt;NA&gt;
+##      [4] 0.000895950304623104  0.00124243910413601  0.00133321157885125
+##      [5]  0.00035819184755355 0.000486627871611347 0.000704519935712556
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1838] 0.000223801264477144     0.48476207915871                 &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;   0.0688943119954946                 &lt;NA&gt;
+##                         ptx23                ptx24                ptx25
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]                 &lt;NA&gt; 0.000989951987328614  0.00119848806121508
+##      [2] 0.000324984331112607  0.00106253458771444  0.00150330727600722
+##      [3]    0.101926047499517 0.000367985280588776   0.0728967296330199
+##      [4]  0.00178415668860519  0.00170478245887666  0.00148619223723776
+##      [5]   0.0008922542683515  0.00109085569237869 0.000627783336276068
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1838] 0.000246634467166787 9.74563882662509e-05                 &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx26                ptx27                ptx28
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]  0.00147816349384099  0.00166765291301307 0.000774833410816674
+##      [2] 0.000877516277926956  0.00051771318689446 0.000624751519282104
+##      [3]  0.00111844312716698 0.000580000527273207    0.012566534597991
+##      [4]  0.00121339939618935  0.00141972387399436  0.00131166654521606
+##      [5]  0.00120378645557846 0.000385923442437107 0.000416181122024305
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;    0.285714285714286
+##   [1838]                 &lt;NA&gt;                 &lt;NA&gt;    0.480094786729858
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;   0.0563944530046225
+##                         ptx29                ptx30                ptx31
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1] 0.000336738129980918  0.00178156084525165  0.00232344256740404
+##      [2] 0.000794537554314091                 &lt;NA&gt;                 &lt;NA&gt;
+##      [3] 0.000846479415159677  0.00060271462667856 0.000871199963317896
+##      [4]  0.00113357701383427  0.00169291760420015  0.00127310061601643
+##      [5]  0.00062039550213261 0.000430982880402251 0.000628338045868677
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1838] 0.000123510158710554                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt; 0.000464252553389044                 &lt;NA&gt;
+##                         ptx32                ptx33                ptx34
+##                     &lt;numeric&gt;            &lt;numeric&gt;            &lt;numeric&gt;
+##      [1]  0.00193283401787871 0.000850581230507513                 &lt;NA&gt;
+##      [2] 0.000568578295815781 0.000919688797196192  0.00054757952737042
+##      [3]                 &lt;NA&gt; 0.000610500610500611 0.000346380325597506
+##      [4]  0.00218955270566156  0.00216110466571123  0.00160157512709748
+##      [5] 0.000463303627394871 0.000605296343001261 0.000698363564296635
+##      ...                  ...                  ...                  ...
+##   [1836]                 &lt;NA&gt;    0.485717202654416                 &lt;NA&gt;
+##   [1837]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1838] 0.000147910239614588                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1839]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##   [1840]                 &lt;NA&gt;                 &lt;NA&gt;                 &lt;NA&gt;
+##                         ptx35
+##                     &lt;numeric&gt;
+##      [1]  0.00219145865626169
+##      [2]  0.00146357584627732
+##      [3] 0.000632387994357153
+##      [4]  0.00215113307207361
+##      [5] 0.000429661830864884
+##      ...                  ...
+##   [1836] 0.000178080294426087
+##   [1837]                 &lt;NA&gt;
+##   [1838] 8.29290541941369e-05
+##   [1839]   0.0102599341279056
+##   [1840]                 &lt;NA&gt;
 ##   -------
 ##   seqinfo: 18 sequences from an unspecified genome; no seqlengths
 ##   hardFilters: NULL</code></pre>
@@ -682,25 +838,31 @@ significant_calls</code></pre>
 </div>
 <div id="save-significant-calls-for-annotation" class="section level1">
 <h1>Save significant calls for annotation</h1>
-<p>Signficant calls can be converted into a dataframe or saved directly as a VCF file for input into annovar.</p>
-<pre class="r"><code>significant_calls %&gt;% tidyr::as_tibble() %&gt;% head() %&gt;% print()</code></pre>
-<pre><code>## # A tibble: 6 x 25
-##   seqnames  start    end width strand ref   alt   totalDepth refDepth altDepth
-##   &lt;fct&gt;     &lt;int&gt;  &lt;int&gt; &lt;int&gt; &lt;fct&gt;  &lt;chr&gt; &lt;chr&gt;      &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
-## 1 chr2     2.55e7 2.55e7     1 *      C     T             NA    35118     3373
-## 2 chr2     1.98e8 1.98e8     1 *      A     C             NA    50184       24
-## 3 chr4     1.06e8 1.06e8     1 *      C     G             NA    25410    25134
-## 4 chr4     1.06e8 1.06e8     1 *      T     G             NA    52691      121
-## 5 chr17    7.58e6 7.58e6     1 *      C     G             NA    38407       18
-## 6 chr4     1.06e8 1.06e8     1 *      T     A             NA    71899       51
-## # ... with 15 more variables: sampleNames &lt;fct&gt;, VAF &lt;dbl&gt;, Qual1 &lt;int&gt;,
-## #   Qual2 &lt;int&gt;, MapQual1 &lt;int&gt;, MapQual2 &lt;int&gt;, Reads1Plus &lt;int&gt;,
-## #   Reads1Minus &lt;int&gt;, Reads2Plus &lt;int&gt;, Reads2Minus &lt;int&gt;,
+<p>Signficant calls can be converted into a dataframe for input into annovar or saved directly as a VCF file.</p>
+<pre class="r"><code>significant_calls_df &lt;- significant_calls %&gt;% 
+  tidyr::as_tibble() %&gt;% 
+  dplyr::select(-width, -strand, -totalDepth) %&gt;% 
+  dplyr::rename(&quot;chr&quot; = seqnames) %&gt;% 
+  dplyr::mutate(chr = sub(pattern=&quot;chr&quot;, replacement=&quot;&quot;,x=chr))
+significant_calls_df %&gt;% readr::write_delim(&quot;espresso_calls.txt&quot;, delim = &quot;\t&quot;)
+
+significant_calls_df %&gt;% head() %&gt;% print()</code></pre>
+<pre><code>## # A tibble: 6 x 22
+##   chr    start    end ref   alt   refDepth altDepth sampleNames     VAF Qual1
+##   &lt;chr&gt;  &lt;int&gt;  &lt;int&gt; &lt;chr&gt; &lt;chr&gt;    &lt;int&gt;    &lt;int&gt; &lt;fct&gt;         &lt;dbl&gt; &lt;int&gt;
+## 1 2     2.55e7 2.55e7 C     T        35118     3373 ptx03       8.76e-2    37
+## 2 2     1.98e8 1.98e8 A     C        50184       24 ptx03       4.78e-4    37
+## 3 4     1.06e8 1.06e8 C     G        25410    25134 ptx03       4.97e-1    37
+## 4 4     1.06e8 1.06e8 T     G        52691      121 ptx03       2.29e-3    37
+## 5 17    7.58e6 7.58e6 C     G        38407       18 ptx03       4.68e-4    37
+## 6 4     1.06e8 1.06e8 T     A        71899       51 ptx04       7.09e-4    37
+## # ... with 12 more variables: Qual2 &lt;int&gt;, MapQual1 &lt;int&gt;, MapQual2 &lt;int&gt;,
+## #   Reads1Plus &lt;int&gt;, Reads1Minus &lt;int&gt;, Reads2Plus &lt;int&gt;, Reads2Minus &lt;int&gt;,
 ## #   FlankingSeqGroup &lt;chr&gt;, MAF &lt;dbl&gt;, model &lt;chr&gt;, model_Pvalue &lt;dbl&gt;,
 ## #   corrected_pvalue &lt;dbl&gt;</code></pre>
 <pre class="r"><code>significant_calls %&gt;% 
   VariantAnnotation::asVCF() %&gt;% 
-  VariantAnnotation::writeVcf(&quot;espresso_calls_MRD.vcf&quot;)</code></pre>
+  VariantAnnotation::writeVcf(&quot;espresso_calls.vcf&quot;)</code></pre>
 <p>Alternatively, we can annotate the significant calls through cellBase, which returns a nested dataframe with transcript-specific functional annotations.</p>
 <pre class="r"><code>anno &lt;- annotate_variants(significant_calls, genome='hg19')
 anno %&gt;% head()</code></pre>
@@ -747,39 +909,40 @@ anno %&gt;% head()</code></pre>
 ## [11] prettyunits_1.0.2                 bit_1.1-14                       
 ## [13] curl_4.2                          compiler_3.6.1                   
 ## [15] cli_1.1.0                         rtracklayer_1.46.0               
-## [17] pbapply_1.4-2                     askpass_1.1                      
-## [19] rappdirs_0.3.1                    stringr_1.4.0                    
-## [21] digest_0.6.22                     cellbaseR_1.10.0                 
-## [23] R.utils_2.9.0                     rmarkdown_1.17                   
-## [25] BSgenome.Hsapiens.UCSC.hg19_1.4.0 pkgconfig_2.0.3                  
-## [27] htmltools_0.4.0                   dbplyr_1.4.2                     
-## [29] fastmap_1.0.1                     BSgenome_1.54.0                  
-## [31] rlang_0.4.1                       RSQLite_2.1.2                    
-## [33] shiny_1.4.0                       jsonlite_1.6                     
-## [35] R.oo_1.23.0                       dplyr_0.8.3                      
-## [37] RCurl_1.95-4.12                   GenomeInfoDbData_1.2.2           
-## [39] Matrix_1.2-17                     Rcpp_1.0.3                       
-## [41] fansi_0.4.0                       R.methodsS3_1.7.1                
-## [43] lifecycle_0.1.0                   stringi_1.4.3                    
-## [45] yaml_2.2.0                        zlibbioc_1.32.0                  
-## [47] plyr_1.8.4                        BiocFileCache_1.10.2             
-## [49] AnnotationHub_2.18.0              grid_3.6.1                       
-## [51] blob_1.2.0                        promises_1.1.0                   
-## [53] crayon_1.3.4                      lattice_0.20-38                  
-## [55] GenomicFeatures_1.38.0            hms_0.5.2                        
-## [57] zeallot_0.1.0                     knitr_1.26                       
-## [59] pillar_1.4.2                      codetools_0.2-16                 
-## [61] biomaRt_2.42.0                    XML_3.98-1.20                    
-## [63] glue_1.3.1                        BiocVersion_3.10.1               
-## [65] evaluate_0.14                     data.table_1.12.6                
-## [67] BiocManager_1.30.10               vctrs_0.2.0                      
-## [69] httpuv_1.5.2                      openssl_1.4.1                    
-## [71] purrr_0.3.3                       tidyr_1.0.0                      
-## [73] assertthat_0.2.1                  xfun_0.11                        
-## [75] mime_0.7                          xtable_1.8-4                     
-## [77] later_1.0.0                       tibble_2.1.3                     
-## [79] GenomicAlignments_1.22.1          AnnotationDbi_1.48.0             
-## [81] memoise_1.1.0                     interactiveDisplayBase_1.24.0</code></pre>
+## [17] readr_1.3.1                       pbapply_1.4-2                    
+## [19] askpass_1.1                       rappdirs_0.3.1                   
+## [21] stringr_1.4.0                     digest_0.6.22                    
+## [23] cellbaseR_1.10.0                  R.utils_2.9.0                    
+## [25] rmarkdown_1.17                    BSgenome.Hsapiens.UCSC.hg19_1.4.0
+## [27] pkgconfig_2.0.3                   htmltools_0.4.0                  
+## [29] dbplyr_1.4.2                      fastmap_1.0.1                    
+## [31] BSgenome_1.54.0                   rlang_0.4.1                      
+## [33] RSQLite_2.1.2                     shiny_1.4.0                      
+## [35] jsonlite_1.6                      R.oo_1.23.0                      
+## [37] dplyr_0.8.3                       RCurl_1.95-4.12                  
+## [39] GenomeInfoDbData_1.2.2            Matrix_1.2-17                    
+## [41] Rcpp_1.0.3                        fansi_0.4.0                      
+## [43] R.methodsS3_1.7.1                 lifecycle_0.1.0                  
+## [45] stringi_1.4.3                     yaml_2.2.0                       
+## [47] zlibbioc_1.32.0                   plyr_1.8.4                       
+## [49] BiocFileCache_1.10.2              AnnotationHub_2.18.0             
+## [51] grid_3.6.1                        blob_1.2.0                       
+## [53] promises_1.1.0                    crayon_1.3.4                     
+## [55] lattice_0.20-38                   GenomicFeatures_1.38.0           
+## [57] hms_0.5.2                         zeallot_0.1.0                    
+## [59] knitr_1.26                        pillar_1.4.2                     
+## [61] codetools_0.2-16                  biomaRt_2.42.0                   
+## [63] XML_3.98-1.20                     glue_1.3.1                       
+## [65] BiocVersion_3.10.1                evaluate_0.14                    
+## [67] data.table_1.12.6                 BiocManager_1.30.10              
+## [69] vctrs_0.2.0                       httpuv_1.5.2                     
+## [71] openssl_1.4.1                     purrr_0.3.3                      
+## [73] tidyr_1.0.0                       assertthat_0.2.1                 
+## [75] xfun_0.11                         mime_0.7                         
+## [77] xtable_1.8-4                      later_1.0.0                      
+## [79] tibble_2.1.3                      GenomicAlignments_1.22.1         
+## [81] AnnotationDbi_1.48.0              memoise_1.1.0                    
+## [83] interactiveDisplayBase_1.24.0</code></pre>
 </div>
 
 

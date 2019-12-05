@@ -202,17 +202,23 @@ If too many of the models appear as "None" (not enough alt alleles to generate t
 
 # Save significant calls for annotation
 
-Signficant calls can be converted into a dataframe or saved directly as a VCF file for input into annovar. 
+Signficant calls can be converted into a dataframe for input into annovar or saved directly as a VCF file. 
 
 ```{r}
-significant_calls %>% tidyr::as_tibble() %>% head() %>% print()
+significant_calls_df <- significant_calls %>% 
+  tidyr::as_tibble() %>% 
+  dplyr::select(-width, -strand, -totalDepth) %>% 
+  dplyr::rename("chr" = seqnames) %>% 
+  dplyr::mutate(chr = sub(pattern="chr", replacement="",x=chr))
+significant_calls_df %>% readr::write_delim("espresso_calls.txt", delim = "\t")
+
+significant_calls_df %>% head() %>% print()
 ```
 
 ```{r}
 significant_calls %>% 
   VariantAnnotation::asVCF() %>% 
-  VariantAnnotation::writeVcf("espresso_calls_MRD.vcf")
-
+  VariantAnnotation::writeVcf("espresso_calls.vcf")
 ```
 
 Alternatively, we can annotate the significant calls through cellBase, which returns a nested dataframe with transcript-specific functional annotations.
