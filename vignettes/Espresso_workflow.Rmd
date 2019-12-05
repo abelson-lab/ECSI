@@ -1,11 +1,10 @@
 ---
-title: "Espresso_workflow"
+title: "Espresso Example Workflow"
 output:
   html_document:
     df_print: paged
 ---
 
-# Espresso Example Workflow 
 
 ```{r, results='hide', message=F, warning=F}
 # Load required packages
@@ -25,23 +24,24 @@ library(MafDb.gnomADex.r2.1.hs37d5) # MAF annotation - gnomAD exome hg19
 
 These files are VarScan pileup2cns outputs - see the paper's methods section for information on how to generate those files.
 
-*In the meantime we provide example files on github of 36 minimal residual disease (MRD) samples collected from AML patients.*
+*In the meantime we provide example files on github of 35 patients where we will call mutations in AML-associated hotspots*
+
 ```{r}
 dir.create("example_data")
-download.file(url="https://raw.githubusercontent.com/abelson-lab/Espresso_paper/master/MRD_Data/F1_SWID_11914100_pileup2cnsINFO_allPositions.zip",
-              destfile = "example_data/AML_MRD_examples.zip")
-unzip("example_data/AML_MRD_examples.zip", exdir = "example_data", overwrite = TRUE)
+download.file(url="https://raw.githubusercontent.com/abelson-lab/Espresso_paper/master/example_data/example_35pts_pileup2cnsINFO_allPositions.zip",
+              destfile = "example_data/example_patients.zip")
+unzip("example_data/example_patients.zip", exdir = "example_data", overwrite = TRUE)
 ```
 
 
 ```{r}
 dir="example_data/"
-files=list.files(dir,pattern = "F1")[1:20]
+files=list.files(dir,pattern = "ptx")
 
 sample_paths <- paste0(dir, files)
 cat("First 5 Sample Paths: \n", head(sample_paths))
 
-sample_names <- substr(files,4,16) # change this based on your file name
+sample_names <- substr(files,1,5) # change this based on your file name
 cat("\n\nFirst 5 Sample Names: \n", head(sample_names))
 ```
 
@@ -69,9 +69,11 @@ download.file(url = "https://raw.githubusercontent.com/abelson-lab/Espresso_pape
 *Now load the files using "load_recurrent_mutations"*
 ```{r}
 # blood cancer mutations from COSMIC observed over 10 times
+  # these will be filtered out from model generation
 hemeCOSMIC_10 <- load_recurrent_mutations("example_data/COSMIC_heme_freq10.txt", genome = "hg19")
 
 # blood cancer mutations from COSMIC observed over 3 times
+  # these will be filtered out from flagged alleles function
 hemeCOSMIC_3 <- load_recurrent_mutations("example_data/COSMIC_heme_freq3.txt", genome = "hg19")
 
 hemeCOSMIC_3
@@ -118,8 +120,9 @@ If you wanted to generate variant calls only for specific mutations (i.e. specif
 
 # Generate Models and Call Variants
 
-I will be running this in parallel with the package DoParallel - using 4 cores to speed up the job. 
-We're currently generating models by trinucleotide context (192 models), but this can be changed by tweaking the "context" argument to pentanucleotide (context = 5; substitution with 2 flanking bases constituting 3072 models) if you have a very large panel (>1 million bp at >2000x depth) or to substitution only (context = 1; substitution with no flanking bases constituting 12 models) if you have a very small panel (see paper for more). 
+We will be running this in parallel with the package DoParallel - using 4 cores to speed up the job. 
+
+We're currently generating models by trinucleotide context (192 models), but this can be changed by tweaking the "context" argument to 5 (substitution with 2 flanking bases, constituting 3072 models) if you have a very large panel (>1 million bp at >2000x depth) or to 1 (substitution only,  constituting 12 models) if you have a very small panel (see paper for more). 
 Generally, the default trinucleotide context approach is the most versatile and effective acoss various ranges and depths. 
 
 ```{r}
@@ -148,13 +151,13 @@ for(i in 1:length(sample_paths)){
 
 # use sample to generate the error models
 	samp_models <- samp %>%
-		filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, MAPQ_cutoff_ref = 59,
-						MAPQ_cutoff_alt = 59, recurrent_mutations = hemeCOSMIC_10) %>%
+		filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, 
+		                   MAPQ_cutoff = 59, recurrent_mutations = hemeCOSMIC_10) %>%
 		generate_all_models()
 
 # call variants using error models, and aggregate together
 	variant_calls[[samp_name]] <- samp %>% 
-		intersect_VRanges(., COSMIC_hotspot_range) %>% 
+		intersect_VRanges(., COSMIC_hotspot_range) %>% # only keep positions within the hotspot range we want to call in
 		call_all_variants(., samp_models)
 
 # cleanup
@@ -170,7 +173,7 @@ registerDoSEQ()
 ```
 
 
-The output is a vranges list object with the variant calls for each samples
+The output is a vranges list object with the variant calls for each samples.
 
 ```{r}
 # Output is in vranges list
@@ -184,18 +187,25 @@ Note that if we were scanning all sequenced positions for variants, we would rec
 ```{r}
 # unlist and correct pvalue (bonferroni)
 variant_calls_unlisted <- variant_calls %>% unlist() %>% correct_pvalues(., method = "bonferroni")
+## if we want to correct sample-by-sample
+# variant_calls_unlisted <- variant_calls %>% correct_pvalues(., method = "bonferroni") %>% unlist()
+
 
 # show significant calls 
 significant_calls <- variant_calls_unlisted[which(variant_calls_unlisted$corrected_pvalue <= 0.05)]
 significant_calls
 ```
 
+We also recommend inspecting the "model" column to ensure that error models were successfully generated for each context. 
+If too many of the models appear as "None" (not enough alt alleles to generate the model), consider restricting the nucleotide context from 5 to 3 or from 3 to 1, thus reducing the number of models generated per sample. If no model can be generated by Espresso for a context, the pvalue from varscan will be used. 
+
+
 # Save significant calls for annotation
 
 Signficant calls can be converted into a dataframe or saved directly as a VCF file for input into annovar. 
 
 ```{r}
-significant_calls %>% tidyr::as_tibble() %>% head()
+significant_calls %>% tidyr::as_tibble() %>% head() %>% print()
 ```
 
 ```{r}
