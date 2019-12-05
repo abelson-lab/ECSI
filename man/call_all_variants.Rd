@@ -20,28 +20,27 @@ This function returns a \code{VRanges} with the following metadata:
 }
 }
 \description{
-Call all variants from the varscan pileup2cns output and the context-specific error models
+Call all variants from the varscan pileup2cns output and the context-specific error models.
 In the rare case that no model exists for that context (not enough alternate alleles), then this function uses the varscan assigned pvalue
 }
 \examples{
 \dontrun{
 # Get flagged alleles and cosmic mutations
-heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
+hemeCOSMIC_10 <- load_recurrent_mutations("example_data/COSMIC_heme_freq10.txt", genome = "hg19")
 flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
-    exclude_cosmic_mutations = TRUE,cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
+    exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 
 # Load and annotate sample
-sample <- load_as_VRanges(sample_name = "pt123",
+samp <- load_as_VRanges(sample_name = "pt123",
     sample_path = "./patient_123_pileup2cns", genome = "hg19", metadata = TRUE)
-sample <- sequence_context(sample)
+samp <- sequence_context(samp)
 library(MafDb.gnomADex.r2.1.hs37d5)
 annotated_samp <- annotate_MAF(varscan_output = variants,
     MAF_database = MafDb.gnomADex.r2.1.hs37d5, genome = "hg19")
 
 # Filter model input
 samp_model_input <- filter_model_input(model_input = annotated_samp,
-    flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
-    cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+    flagged_alleles = flagged_alleles, recurrent_mutations = hemeCOSMIC_10)
 
 # Generate the error models for this sample
 samp_models <- generate_all_models(sample = samp_model_input, plots = FALSE)

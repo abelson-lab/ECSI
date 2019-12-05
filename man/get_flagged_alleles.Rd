@@ -9,9 +9,7 @@ get_flagged_alleles(
   sample_paths,
   recurrent_mutations = NA,
   memory_saving = FALSE,
-  exclude_cosmic_mutations = FALSE,
-  cosmic_mutations,
-  cosmic_mut_frequency = 3
+  starting_percentile = 99
 )
 }
 \arguments{
@@ -23,11 +21,7 @@ get_flagged_alleles(
 
 \item{memory_saving}{Logical. Option to save memory if you have a lot of samples (e.g. >500 with a 16Gb RAM machine), but takes twice as long}
 
-\item{exclude_cosmic_mutations}{Logical indicating whether or not to exclude cosmic mutations from flagged SNPs}
-
-\item{cosmic_mutations}{\code{VRanges} object with position and substitution of excluded cosmic mutations}
-
-\item{cosmic_mut_frequency}{Mutations with this frequency or above in the cosmic database will be excluded}
+\item{starting_percentile}{Lower VAF percentile to start looking for alleles to flag. Default is 99, but can use 95 if you want to flag more alleles (more conservative)}
 }
 \value{
 This function returns a \code{VRanges} object with the following information:
@@ -49,7 +43,7 @@ Flag alleles that are present in too many samples at high variant allele frequen
 \dontrun{
 # get list of file names
 file_names <- list.files(path = "./data/", pattern = "sample")
-heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
+hemeCOSMIC_3 <- load_recurrent_mutations("example_data/COSMIC_heme_freq3.txt", genome = "hg19")
 
 # sample names are first 10 characters of file name
 all_sample_names <- substr(file_names, 1, 10)
@@ -59,7 +53,6 @@ all_sample_paths <- paste0("./data/", file_names)
 
 # get flagged alleles
 flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
-    exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC,
-    cosmic_mut_frequency = 3, memory_saving = FALSE)
+    recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)
 }
 }

@@ -4,6 +4,7 @@
 #'
 #' @param variants \code{VRanges} object from get_flagged_alleles
 #' @param metadata Logical. Determine whether or not to keep the metadata (annotations) when returning flagged alleles
+#' @param starting_percentile Lower VAF percentile to start looking for alleles to flag. Default is 99, but can use 95 if you want to flag more alleles (more conservative)
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
 #'	\item seqnames
@@ -16,13 +17,8 @@
 #'	\item metadata (optional)
 #'	}
 
-### TO DO LIST:
-#	- Check input to ensure it is suitable
-#	- Parameter to tune quantile starting point
-#	- Parameter to tune fisher test cut-off
-
 flag_alleles <-
-function(variants, metadata = FALSE){
+function(variants, metadata = FALSE, starting_percentile = 99){
 
   # only the VAFs without chrom / pos / ref / vaf / flanking
   vars=as.matrix(S4Vectors::mcols(variants))
@@ -32,7 +28,7 @@ function(variants, metadata = FALSE){
   varlen=length(vars_notNA)
 
   # top 95% quantile
-  Q=stats::quantile(as.numeric(vars_notNA), seq(0.99,1,0.001))
+  Q=stats::quantile(as.numeric(vars_notNA), seq(starting_percentile/100,1,0.001))
   Q=Q[-which(Q==1)]   # remove 100th percentile
 
   line=c()

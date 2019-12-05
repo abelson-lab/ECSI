@@ -6,15 +6,13 @@
 #' @param sample_paths Character vector with the paths of the samples
 #' @param recurrent_mutations \code{VRanges} object with chr, pos ref, alt of frequently mutated alleles to remove from model input. \code{GRanges} objects are also accepted, in which case filtering will occur by position.
 #' @param memory_saving Logical. Option to save memory if you have a lot of samples (e.g. >500 with a 16Gb RAM machine), but takes twice as long
-#' @param exclude_cosmic_mutations Logical indicating whether or not to exclude cosmic mutations from flagged SNPs
-#' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
-#' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
+#' @param starting_percentile Lower VAF percentile to start looking for alleles to flag. Default is 99, but can use 95 if you want to flag more alleles (more conservative)
 #' @export
 #' @examples
 #' \dontrun{
 #' # get list of file names
 #' file_names <- list.files(path = "./data/", pattern = "sample")
-#' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
+#' hemeCOSMIC_3 <- load_recurrent_mutations("example_data/COSMIC_heme_freq3.txt", genome = "hg19")
 #'
 #' # sample names are first 10 characters of file name
 #' all_sample_names <- substr(file_names, 1, 10)
@@ -24,8 +22,7 @@
 #'
 #' # get flagged alleles
 #' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
-#'     exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC,
-#'     cosmic_mut_frequency = 3, memory_saving = FALSE)
+#'     recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)
 #' }
 #' @return This function returns a \code{VRanges} object with the following information:
 #' \itemize{
@@ -39,14 +36,8 @@
 #'	\item metadata (optional)
 #'	}
 
-### TO DO LIST:
-#	- Check input to ensure it is suitable
-#	- Parameter to tune quantile starting point
-#	- Parameter to tune fisher test cut-off
-
-
 get_flagged_alleles <-
-function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = FALSE, exclude_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 3){
+function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = FALSE, starting_percentile = 99){
 
   alleles <- VariantAnnotation::VRanges()
 
@@ -65,7 +56,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
 
       # get sample as VRanges and annotate with sequence context and MAF
       samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
-        filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+        filter_MAPQ(., MAPQ_cutoff = 59)
 
       # add any extra alleles from this sample to the alleles VRanges object
       samp_alleles <- VariantAnnotation::VRanges(seqnames = GenomicRanges::seqnames(samp),
@@ -80,7 +71,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
     }
 
     ### TAG THE FREQUENT SNPS
-    flagged_alleles <- flag_alleles(alleles)
+    flagged_alleles <- flag_alleles(alleles, starting_percentile)
 
     ## Very different approach if memory_saving == TRUE
   } else if(memory_saving == TRUE){
@@ -100,7 +91,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
 
       # get sample as VRanges and annotate with sequence context and MAF
       samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
-        filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+        filter_MAPQ(., MAPQ_cutoff = 59)
 
       # add any extra alleles from this sample to the alleles VRanges object
       samp_alleles <- VariantAnnotation::VRanges(seqnames = GenomicRanges::seqnames(samp),
@@ -117,7 +108,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
     ### now start flagging the alleles
     VAFlen=length(VAFs)   # length of all VAFs
 
-    Q=stats::quantile(VAFs, seq(0.99,1,0.001))
+    Q=stats::quantile(VAFs, seq(starting_percentile/100,1,0.001))
     Q=Q[-which(Q==1)]   # remove 100th percentile
     rm(VAFs)
 
@@ -137,7 +128,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
 
       # get sample as VRanges and annotate with sequence context and MAF
       samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
-        filter_MAPQ(., MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+        filter_MAPQ(., MAPQ_cutoff = 59)
 
       # iterate through quantiles and tally up
       for(j in 1:length(Q)){
@@ -162,14 +153,6 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
       flag_index = append(flag_index, which(vafquantile[,j] > n))
     }
     flagged_alleles <- alleles[unique(flag_index),]
-  }
-
-  # exclude the cosmic mutations
-  if(exclude_cosmic_mutations == TRUE){
-    # filter for frequency above 3
-    cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
-    # removed flagged alleles overlapping with cosmic mutations
-    flagged_alleles <- subtract_VRanges(flagged_alleles, cosmic_mutations)
   }
 
   # If user provides recurrent mutations

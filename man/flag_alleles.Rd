@@ -4,12 +4,14 @@
 \alias{flag_alleles}
 \title{Flag Alleles}
 \usage{
-flag_alleles(variants, metadata = FALSE)
+flag_alleles(variants, metadata = FALSE, starting_percentile = 99)
 }
 \arguments{
 \item{variants}{\code{VRanges} object from get_flagged_alleles}
 
 \item{metadata}{Logical. Determine whether or not to keep the metadata (annotations) when returning flagged alleles}
+
+\item{starting_percentile}{Lower VAF percentile to start looking for alleles to flag. Default is 99, but can use 95 if you want to flag more alleles (more conservative)}
 }
 \value{
 This function returns a \code{VRanges} object with the following information:

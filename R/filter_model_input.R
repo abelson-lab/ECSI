@@ -4,19 +4,15 @@
 #'
 #' @param model_input \code{VRanges} object annotated with mutation context and population minor allele frequency
 #' @param flagged_alleles \code{VRanges} object with high VAF alleles flagged as being present in too many samples
-#' @param MAF_cutoff Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded
-#' @param VAF_cutoff Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded
-#' @param filter_cosmic_mutations Logical indicating whether or not to filter cosmic mutations
-#' @param cosmic_mutations \code{VRanges} object with position and substitution of excluded cosmic mutations
-#' @param cosmic_mut_frequency Mutations with this frequency or above in the cosmic database will be excluded
-#' @param MAPQ_cutoff_ref Minimum acceptable MAPQ score for reference allele
-#' @param MAPQ_cutoff_alt Minimum acceptable MAPQ score for alternate allele
+#' @param MAF_cutoff Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.001
+#' @param VAF_cutoff Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.05
+#' @param MAPQ_cutoff Minimum acceptable MAPQ score; positions below this cutoff will be excluded. Default is 59
 #' @param recurrent_mutations \code{VRanges} object with chr, pos ref, alt of frequently mutated alleles to remove from model input. \code{GRanges} objects are also accepted, in which case filtering will occur by position.
 #' @export
 #' @examples
 #' \dontrun{
 #' # Get flagged alleles and cosmic mutations
-#' heme_COSMIC <- load_cosmic_mutations(cosmic_mutations_path = "./heme_COSMIC.csv")
+#' hemeCOSMIC_10 <- load_recurrent_mutations("example_data/COSMIC_heme_freq10.txt", genome = "hg19")
 #' flagged_alleles <- get_flagged_alleles(all_sample_names, all_sample_paths,
 #'     exclude_cosmic_mutations = TRUE, cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 3)
 #'
@@ -30,16 +26,13 @@
 #'
 #' # Filter model input
 #' samp_model_input <- filter_model_input(model_input = annotated_samp,
-#'     flagged_alleles = flagged_alleles, filter_cosmic_mutations = TRUE,
-#'     cosmic_mutations = heme_COSMIC, cosmic_mut_frequency = 10)
+#'     flagged_alleles = flagged_alleles, recurrent_mutations = hemeCOSMIC_10)
 #' }
 #' @return This function returns a filtered \code{VRanges} object.
-#'
-#'
+
 
 filter_model_input <-
-function(model_input, flagged_alleles = NA, MAF_cutoff = 0.001, VAF_cutoff = 0.05, filter_cosmic_mutations = FALSE, cosmic_mutations, cosmic_mut_frequency = 10,
-         MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59, recurrent_mutations = NA) {
+function(model_input, flagged_alleles = NA, MAF_cutoff = 0.001, VAF_cutoff = 0.05, MAPQ_cutoff = 59, recurrent_mutations = NA) {
 
   # Check that input is VRanges
   if(class(model_input) != "VRanges"){ stop('Input "model_input" needs to be VRanges object') }
@@ -50,20 +43,12 @@ function(model_input, flagged_alleles = NA, MAF_cutoff = 0.001, VAF_cutoff = 0.0
   model_input <- model_input[which(model_input$VAF < VAF_cutoff),]
 
   # filter MAPQ
-  model_input <- filter_MAPQ(model_input, MAPQ_cutoff_ref = MAPQ_cutoff_ref, MAPQ_cutoff_alt = MAPQ_cutoff_alt)
+  model_input <- filter_MAPQ(model_input, MAPQ_cutoff = MAPQ_cutoff)
 
-  # If user provides recurrent mutations
+  # If user provides flagged alleles
   if(class(flagged_alleles) %in% c("VRanges", "GRanges")){
     # remove variants that overlap with cosmic mutations
     model_input <- subtract_VRanges(model_input, flagged_alleles)
-  }
-
-  # if filtering cosmic mutations
-  if(filter_cosmic_mutations == TRUE){
-    # filter for frequency above 10
-    cosmic_mutations <- cosmic_mutations[cosmic_mutations$hemCOSMIC_DC >= cosmic_mut_frequency]
-    # remove variants that overlap with cosmic mutations
-    model_input <- subtract_VRanges(model_input, cosmic_mutations)
   }
 
   # If user provides recurrent mutations

@@ -4,14 +4,12 @@
 \alias{filter_MAPQ}
 \title{Filter MAPQ}
 \usage{
-filter_MAPQ(sample, MAPQ_cutoff_ref = 59, MAPQ_cutoff_alt = 59)
+filter_MAPQ(sample, MAPQ_cutoff = 59)
 }
 \arguments{
 \item{sample}{\code{VRanges} object of the varscan pileup2cns output}
 
-\item{MAPQ_cutoff_ref}{Minimum acceptable MAPQ score for reference allele}
-
-\item{MAPQ_cutoff_alt}{Minimum acceptable MAPQ score for alternate allele}
+\item{MAPQ_cutoff}{Minimum acceptable MAPQ score. Default is 59}
 }
 \value{
 This function returns a \code{VRanges} object filtered by MAPQ cutoff

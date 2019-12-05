@@ -10,12 +10,12 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' variants_corrected <- correct_pvalue(variant_calls = variants, method = 'fdr')
+#' variants_corrected <- correct_pvalue(variant_calls = variants, method = 'bonferroni')
 #' }
 #' @return This function returns a \code{VRangesList} or \code{VRanges} object with a new metadata column: corrected_pvalue
 
 correct_pvalues <-
-function(variant_calls, method = 'fdr'){
+function(variant_calls, method = 'bonferroni'){
 
   # if VRangesList, correct pvalues by sample
   if(class(variant_calls) %in% c("VRangesList", "SimpleVRangesList")){

@@ -4,7 +4,7 @@
 \alias{correct_pvalues}
 \title{p-value correction}
 \usage{
-correct_pvalues(variant_calls, method = "fdr")
+correct_pvalues(variant_calls, method = "bonferroni")
 }
 \arguments{
 \item{variant_calls}{\code{VRangesList} or \code{VRanges} object from call_all_variants output}
@@ -22,6 +22,6 @@ For mutation calling across all genomic positions sequenced, we recommend applyi
 }
 \examples{
 \dontrun{
-variants_corrected <- correct_pvalue(variant_calls = variants, method = 'fdr')
+variants_corrected <- correct_pvalue(variant_calls = variants, method = 'bonferroni')
 }
 }
