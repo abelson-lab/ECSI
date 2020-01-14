@@ -55,6 +55,8 @@ As real mutations in our data are likely to occur at these hotspots, we will exc
 For updated cancer associated somatic mutations, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic)
 If you have no hotspot mutations that you wish to exclude from flagged allele generation and error model generation, feel free to skip this step.  
 
+Note - If you wanted to generate variant calls only for specific mutations (i.e. specified ref + alt) rather than the position alone, you can use the load_recurrent_mutatations function to load your specific mutations from a tab-delimited file with four columns: “chr, pos, ref, alt”. The intersect_VRanges function will recognize the format and adapt accordingly.
+
 *We've posted example data on github that you can download - heme malignancies from COSMIC*
 ```{r}
 dir.create("example_data")
@@ -182,7 +184,7 @@ variant_calls
 
 
 We can unlist that vranges object, conduct the pvalue correction (bonferroni across all samples), and keep the significant calls. 
-Note that if we were scanning all sequenced positions for variants, we would recommend applying bonferonni correction by sample. 
+Note that if we were scanning all sequenced positions for variants, we would recommend applying bonferonni correction by sample.
 
 ```{r}
 # unlist and correct pvalue (bonferroni)
