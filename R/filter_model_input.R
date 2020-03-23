@@ -4,8 +4,8 @@
 #'
 #' @param model_input \code{VRanges} object annotated with mutation context and population minor allele frequency
 #' @param flagged_alleles \code{VRanges} object with high VAF alleles flagged as being present in too many samples
-#' @param MAF_cutoff Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.001
-#' @param VAF_cutoff Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.05
+#' @param MAF_cutoff Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.001. This is to exclude polymorphisms results from germline mutations or sample-to-sample contamination from our error model
+#' @param VAF_cutoff Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.05. This is to exclude obvious somatic mutations or private germline mutations from our error model
 #' @param MAPQ_cutoff Minimum acceptable MAPQ score; positions below this cutoff will be excluded. Default is 59
 #' @param recurrent_mutations \code{VRanges} object with chr, pos ref, alt of frequently mutated alleles to remove from model input. \code{GRanges} objects are also accepted, in which case filtering will occur by position.
 #' @export
