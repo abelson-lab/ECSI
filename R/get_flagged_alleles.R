@@ -73,7 +73,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
     }
 
     ### TAG THE FREQUENT SNPS
-    flagged_alleles <- flag_alleles(alleles, starting_percentile, interval)
+    flagged_alleles <- flag_alleles(alleles, starting_percentile = starting_percentile, interval = interval)
 
     ## Very different approach if memory_saving == TRUE
   } else if(memory_saving == TRUE){
