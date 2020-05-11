@@ -160,7 +160,7 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
   # If user provides recurrent mutations
   if(class(recurrent_mutations) %in% c("VRanges", "GRanges")){
     # remove variants that overlap with cosmic mutations
-    model_input <- subtract_VRanges(flagged_alleles, recurrent_mutations)
+    flagged_alleles <- subtract_VRanges(flagged_alleles, recurrent_mutations)
   }
 
   return(flagged_alleles)
