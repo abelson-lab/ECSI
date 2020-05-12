@@ -130,16 +130,16 @@ function(i, data, groups, model = "auto"){
           # fit the distribution and get a rate estimate
           ### Fit the quantiles by a 0.9 probability vector
           fitEx <- fitdistrplus::fitdist(altBases, distr = "exp",method = "qme",probs=c(0.9))
-
-          Ex$V1[i] <- fitEx$estimate[[1]]
-          indexEx <- i
+          l=paste(c(i,"exp",fitEx$estimate[[1]], "NA" )) # exp for depth < 10000
+          # Ex$V1[i] <- fitEx$estimate[[1]]
+          # indexEx <- i
+        } else {
+          l=paste(c(i,"exp",Ex$V1[indexEx], "NA" ))
         }
-
-        l=paste(c(i,"exp",Ex$V1[indexEx], "NA" )) # exp for depth < 10000
 
       } else {
 
-        l=paste(c(i,"weibull",fitW$estimate[[1]],fitW$estimate[[2]])) # weibull for depth > 10000
+        l=paste(c(i,"weibull",fitW$estimate[[1]],fitW$estimate[[2]]))
       }
     }
   }
