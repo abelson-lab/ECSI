@@ -1,6 +1,7 @@
 #' Generate Model
 #'
-#' Generate error model given a specific trinucleotide context. Fits error distribution with Exp model for <10,000 sequencing depth and Weibull model for >=10,000 depth.
+#' Generate all error models for each trinucleotide variant context. Fits error distribution with either an Exp or Weibull distribution depending on the overall distribution of non-reference alleles.
+#' If the most frequent non-reference allele count is 1 (typically at <10,000 sequencing depth) an Exponential distribution will be fitted and if it is greater than 1 (seen at ultra-deep read depths) a Weibull distribution will be fitted.
 #'
 #' @param i Index of the FlankingSeqGroup for which the model is being generated
 #' @param data \code{Dataframe} from generate_all_models with FlankingSeqGroup and three empty columns for parameters of model fit

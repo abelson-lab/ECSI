@@ -1,6 +1,6 @@
 #' Call Variants
 #'
-#' Call all variants from the varscan pileup2cns output given a specifci trinucleotide context and the corresponding error model.
+#' Call all variants from the varscan pileup2cns output given a specific trinucleotide context and the corresponding error model.
 #'
 #' @param i Index of the FlankingSeqGroup for which the model is being generated
 #' @param data \code{Data.Frame} from \code{generate_all_models} with FlankingSeqGroup and three empty columns for parameters of model fit

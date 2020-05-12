@@ -18,9 +18,9 @@ filter_model_input(
 
 \item{flagged_alleles}{\code{VRanges} object with high VAF alleles flagged as being present in too many samples}
 
-\item{MAF_cutoff}{Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.001}
+\item{MAF_cutoff}{Population Minor Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.001. This is to exclude polymorphisms results from germline mutations or sample-to-sample contamination from our error model}
 
-\item{VAF_cutoff}{Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.05}
+\item{VAF_cutoff}{Sample Variant Allele Frequency cutoff: variants at or above this cutoff are excluded. Default is 0.05. This is to exclude obvious somatic mutations or private germline mutations from our error model}
 
 \item{MAPQ_cutoff}{Minimum acceptable MAPQ score; positions below this cutoff will be excluded. Default is 59}
 
@@ -31,6 +31,7 @@ This function returns a filtered \code{VRanges} object.
 }
 \description{
 Filter variants to remove flagged alleles, polymorphisms, cosmic mutations, and high VAF prior to error model generation.
+In addition to these filters this function also detects and removes contextual outliers, that is non-reference alleles with an exceptionally high read count compared to the second most abundant non-reference allele.
 }
 \examples{
 \dontrun{

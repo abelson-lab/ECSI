@@ -1,7 +1,7 @@
 Package: Espresso
-Title: Espresso - Error Suppression through Contextual Signature Integration
+Title: Espresso -  Somatic Mutation Calling using Contextual Error Models
 Version: 0.0.0.9000
-Authors@R: c(person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")), person("Sagi", "Abelson", email = "sagi.abelson@oicr.on.ca", role = c("aut", "ctb")))
+Authors@R: c(person("Andy", "Zeng", email = "andy.zeng@uhnresearch.ca", role = c("aut", "cre")), person("Sagi", "Abelson", email = "sagi.abelson@oicr.on.ca", role = c("aut", "ctb")), person("Ido", "Nofech-Mozes", email = "Ido.Nofech-Mozes@oicr.on.ca", role = c("ctb")))
 Description: Traditional variant calling methods utilize variant allele frequency (VAF) cutoffs
 	to call variants. These cutoffs are often set arbitrarily and the measure becomes 
 	problematic when trying to call at variants at low VAFs, where true biological variation 
@@ -12,7 +12,7 @@ Description: Traditional variant calling methods utilize variant allele frequenc
 	existing variant calling methods and bolsters our ability to accurately distinguish signal 
 	from noise at very low VAFs.
 Depends: R (>= 3.5.0)
-Imports: VariantAnnotation, doParallel, fitdistrplus, dplyr, stringr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer, GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, GenomicScores, utils, vctrs, stats, BiocGenerics, maftools, cellbaseR
+Imports: VariantAnnotation, doParallel, fitdistrplus, plyr, dplyr, stringr, data.table, rlang, foreach, Biostrings, GenomeInfoDb, methods, rtracklayer, GenomicRanges, S4Vectors, IRanges, BSgenome.Hsapiens.UCSC.hg19, BSgenome.Hsapiens.UCSC.hg38, GenomicScores, utils, vctrs, stats, BiocGenerics, maftools, cellbaseR
 License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,4 +21,4 @@ Suggests:
 	rmarkdown,
 	testthat
 VignetteBuilder: knitr
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.0

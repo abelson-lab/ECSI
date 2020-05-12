@@ -24,5 +24,5 @@ This function returns a \code{VRanges} with the following metadata:
 }
 }
 \description{
-Call all variants from the varscan pileup2cns output given a specifci trinucleotide context and the corresponding error model.
+Call all variants from the varscan pileup2cns output given a specific trinucleotide context and the corresponding error model.
 }

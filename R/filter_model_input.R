@@ -1,6 +1,7 @@
 #' Filter Model Input
 #'
 #' Filter variants to remove flagged alleles, polymorphisms, cosmic mutations, and high VAF prior to error model generation.
+#' In addition to these filters this function also detects and removes contextual outliers, that is non-reference alleles with an exceptionally high read count compared to the second most abundant non-reference allele.
 #'
 #' @param model_input \code{VRanges} object annotated with mutation context and population minor allele frequency
 #' @param flagged_alleles \code{VRanges} object with high VAF alleles flagged as being present in too many samples

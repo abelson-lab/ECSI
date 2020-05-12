@@ -48,14 +48,12 @@ cat("\n\nFirst 5 Sample Names: \n", head(sample_names))
 
 ### Load recurrent mutations
 
-These are tab delimited files with four columns: chr, pos, ref, alt
-Contains blood cancer associated mutations from COSMIC observed at least 10 times or 3 times, respectively. 
-As real mutations in our data are likely to occur at these hotspots, we will exclude these mutational sites from downstream error modelling. 
+These are tab delimited files with four columns: chr, pos, ref, alt.  
+Contains blood cancer associated mutations from COSMIC observed at least 10 times or 3 times, respectively.  
+As real mutations in our data are likely to occur at these hotspots, we will exclude these mutational sites from downstream error modelling.  
 
-For updated cancer associated somatic mutations, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic)
+For updated cancer associated somatic mutations, please visit the [COSMIC website](https://cancer.sanger.ac.uk/cosmic).  
 If you have no hotspot mutations that you wish to exclude from flagged allele generation and error model generation, feel free to skip this step.  
-
-Note - If you wanted to generate variant calls only for specific mutations (i.e. specified ref + alt) rather than the position alone, you can use the load_recurrent_mutatations function to load your specific mutations from a tab-delimited file with four columns: “chr, pos, ref, alt”. The intersect_VRanges function will recognize the format and adapt accordingly.
 
 *We've posted example data on github that you can download - heme malignancies from COSMIC*
 ```{r}
@@ -68,7 +66,7 @@ download.file(url = "https://raw.githubusercontent.com/abelson-lab/Espresso_pape
               destfile = "example_data/COSMIC_heme_freq3.txt")
 ```
 
-*Now load the files using "load_recurrent_mutations"*
+Now load the files using *load_recurrent_mutations*
 ```{r}
 # blood cancer mutations from COSMIC observed over 10 times
   # these will be filtered out from model generation
@@ -84,13 +82,13 @@ hemeCOSMIC_3
 
 ### Get flagged alleles
 
-Flagged alleles are alleles that appear at a high VAF in a significant number of samples within your cohort. These are very likely to be sequencing errors and should be interpreted with caution in variant calling results. However, if you are expecting recurrent mutations (e.g. Hematologic cancer associated mutations from COSMIC), then you can use the recurrent_mutations argument to exclude them from the flagging process.
+Flagged alleles are alleles that appear at a high VAF in a significant number of samples within your cohort. These are very likely to be sequencing errors and should be interpreted with caution in variant calling results. However, if you are expecting recurrent mutations (e.g. Hematologic cancer associated mutations from COSMIC), then you can use the *recurrent_mutations* argument to exclude them from the flagging process.  
 
-Here, we will input the recurrent mutations from COSMIC with a frequency >= 3 and ask get_flagged_alleles to ignore these alleles.
-Additionally, we are setting the memory_saving function to FALSE in this case because we are only processing 40 samples.
+Here, we will input the recurrent mutations from COSMIC with a frequency >= 3 and ask *get_flagged_alleles* to ignore these alleles.  
+Additionally, we are setting the *memory_saving* argument to FALSE in this case because we are only processing 40 samples.  
 
-If you are processing > 400 samples on a 16gb RAM device or > 200 samples on a 8gb RAM device, we recommend setting memory_saving = TRUE. 
-This will employ an alternative method that consumes less memory but takes approximately twice as long to run. 
+If you are processing > 400 samples on a 16gb RAM device or > 200 samples on a 8gb RAM device, we recommend setting *memory_saving = TRUE*.  
+This will employ an alternative method that consumes less memory but takes approximately twice as long to run.  
 
 ```{r}
 flagged_alleles <- get_flagged_alleles(sample_names, sample_paths, recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)
@@ -115,17 +113,20 @@ COSMIC_hotspot_range <- load_bed("example_data/hemeCOSMIC_hotspot_range.bed", ge
 COSMIC_hotspot_range
 ```
 
-If you want to call mutations in all covered positions, you can skip this step and remove the \code{intersect_VRanges(., COSMIC_hotspot_range) %>%} in the following code chunk. This will prevent it from filtering out any positions prior to variant calling.
+If you wanted to generate variant calls only for specific mutations (i.e. specified ref + alt) rather than the position alone, you can load in your specific mutations in the "chr, pos, ref, alt" format using *load_recurrent_mutations()*.  
 
-If you wanted to generate variant calls only for specific mutations (i.e. specified ref + alt) rather than the position alone, you can load in your specific mutations in the "chr, pos, ref, alt" format using \code{load_recurrent mutations}. The \code{intersect_VRanges} function will recognize the format and adapt accordingly.
+If you want to call mutations in all covered positions, you can skip this step and remove the *intersect_VRanges(., COSMIC_hotspot_range)* in the following code chunk. This will prevent it from filtering out any positions prior to variant calling.  
 
 
 # Generate Models and Call Variants
 
-We will be running this in parallel with the package DoParallel - using 4 cores to speed up the job. 
+We will be running this in parallel with the package DoParallel - using 4 cores to speed up the job.  
 
-We're currently generating models by trinucleotide context (192 models), but this can be changed by tweaking the "context" argument to 5 (substitution with 2 flanking bases, constituting 3072 models) if you have a very large panel (>1 million bp at >2000x depth) or to 1 (substitution only,  constituting 12 models) if you have a very small panel (see paper for more). 
-Generally, the default trinucleotide context approach is the most versatile and effective acoss various ranges and depths. 
+We're currently generating models by trinucleotide context (192 models), but this can be changed by tweaking the *context* argument to 5 (substitution with 2 flanking bases, constituting 3072 models) if you have a very large panel (>1 million bp at >2000x depth) or to 1 (substitution only, constituting 12 models) if you have a very small panel (see paper for more).  
+Generally, the default trinucleotide context approach is the most versatile and effective acoss various ranges and depths.  
+
+Also note that we perform a key preprocessing step to minimize somatic mutation contamination of our error models. This is achieved in through the *filter_model_input* function where we remove flagged alleles, polymorphisms (MAF > 0.001), clear private germline variants (VAF > 0.05), low quality calls (MAPQ < 59), and recurrent mutations identified in COSMIC. Additionally, the filter_model_input function also removes contextual outliers, which are non-reference alleles with an exceptionally high read count compared to the rest of the distribution. 
+
 
 ```{r}
 # Make cluster and start
@@ -154,7 +155,7 @@ for(i in 1:length(sample_paths)){
 # use sample to generate the error models
 	samp_models <- samp %>%
 		filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, 
-		                   MAPQ_cutoff = 59, recurrent_mutations = hemeCOSMIC_10) %>%
+		                   MAPQ_cutoff = 59, recurrent_mutations = hemeCOSMIC_10) %>%    # preprocessing to clean training set (error models)
 		generate_all_models()
 
 # call variants using error models, and aggregate together
@@ -175,7 +176,7 @@ registerDoSEQ()
 ```
 
 
-The output is a vranges list object with the variant calls for each samples.
+The output is a vranges list object with the variant calls for each samples.  
 
 ```{r}
 # Output is in vranges list
@@ -183,8 +184,8 @@ variant_calls
 ```
 
 
-We can unlist that vranges object, conduct the pvalue correction (bonferroni across all samples), and keep the significant calls. 
-Note that if we were scanning all sequenced positions for variants, we would recommend applying bonferonni correction by sample.
+We can unlist that vranges object, conduct the pvalue correction (bonferroni across all samples), and keep the significant calls.   
+Note that if we were scanning all sequenced positions for variants, we would recommend applying bonferonni correction by sample.  
 
 ```{r}
 # unlist and correct pvalue (bonferroni)
@@ -198,13 +199,13 @@ significant_calls <- variant_calls_unlisted[which(variant_calls_unlisted$correct
 significant_calls
 ```
 
-We also recommend inspecting the "model" column to ensure that error models were successfully generated for each context. 
-If too many of the models appear as "None" (not enough alt alleles to generate the model), consider restricting the nucleotide context from 5 to 3 or from 3 to 1, thus reducing the number of models generated per sample. If no model can be generated by Espresso for a context, the pvalue from varscan will be used. 
+We also recommend inspecting the "model" column to ensure that error models were successfully generated for each context.   
+If too many of the models appear as "None" (not enough alt alleles to generate the model), consider restricting the nucleotide context from 5 to 3 or from 3 to 1, thus reducing the number of models generated per sample. If no model can be generated by Espresso for a context, the pvalue from varscan will be used.  
 
 
 # Save significant calls for annotation
 
-Signficant calls can be converted into a dataframe for input into annovar or saved directly as a VCF file. 
+Signficant calls can be converted into a dataframe for input into annovar or saved directly as a VCF file.  
 
 ```{r}
 significant_calls_df <- significant_calls %>% 
@@ -223,7 +224,7 @@ significant_calls %>%
   VariantAnnotation::writeVcf("espresso_calls.vcf")
 ```
 
-Alternatively, we can annotate the significant calls through cellBase, which returns a nested dataframe with transcript-specific functional annotations.
+Alternatively, we can annotate the significant calls through cellBase, which returns a nested dataframe with transcript-specific functional annotations.  
 
 ```{r}
 anno <- annotate_variants(significant_calls, genome='hg19')
@@ -234,4 +235,5 @@ anno %>% head()
 ```{r}
 sessionInfo()
 ```
+
 

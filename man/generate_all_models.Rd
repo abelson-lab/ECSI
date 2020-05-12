@@ -9,7 +9,7 @@ generate_all_models(sample, model = "auto")
 \arguments{
 \item{sample}{\code{VRanges} object of the varscan pileup2cns output annotated with variant context}
 
-\item{model}{Specifying which error model (exp or weibull) to fit. Default is "auto".}
+\item{model}{Specifying which error model ("exp" or "weibull") to fit. Default is "auto".}
 }
 \value{
 This function returns a \code{dataframe} with the following information:
@@ -21,7 +21,8 @@ This function returns a \code{dataframe} with the following information:
 }
 }
 \description{
-Generate all error models for each trinucleotide variant context. Fits error distribution with Exp model for <10,000 sequencing depth and Weibull model for >=10,000 depth.
+Generate all error models for each trinucleotide variant context. Fits error distribution with either an Exp or Weibull distribution depending on the overall distribution of non-reference alleles.
+If the most frequent non-reference allele count is 1 (typically at <10,000 sequencing depth) an Exponential distribution will be fitted and if it is greater than 1 (seen at ultra-deep read depths) a Weibull distribution will be fitted.
 }
 \examples{
 \dontrun{

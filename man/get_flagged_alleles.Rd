@@ -9,7 +9,9 @@ get_flagged_alleles(
   sample_paths,
   recurrent_mutations = NA,
   memory_saving = FALSE,
-  starting_percentile = 99
+  starting_percentile = 99,
+  interval = 0.001,
+  MAPQcutoff = 59
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ get_flagged_alleles(
 \item{memory_saving}{Logical. Option to save memory if you have a lot of samples (e.g. >500 with a 16Gb RAM machine), but takes twice as long}
 
 \item{starting_percentile}{Lower VAF percentile to start looking for alleles to flag. Default is 99, but can use 95 if you want to flag more alleles (more conservative)}
+
+\item{interval}{VAF interval to iterate through for flagging alleles. Default is 0.001}
+
+\item{MAPQcutoff}{Minimum acceptable MAPQ score; positions below this cutoff will be excluded. Default is 59}
 }
 \value{
 This function returns a \code{VRanges} object with the following information:
