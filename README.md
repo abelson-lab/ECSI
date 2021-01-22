@@ -27,6 +27,9 @@ To annotate variants with minor allele frequencies, download the appropriate [Ma
 # gnomAD exomes release 2.1 - hg19 
 BiocManager::install(c("MafDb.gnomADex.r2.1.hs37d5"))
 
+# gnomAD exomes - hg38
+BiocManager::install("MafDb.gnomADex.r2.0.1.GRCh38")
+
 ### For MAF annotation from other databases (1Kgenomes, ExAc, etc) or specific to the GRCh38 reference, see link above
 ```
 
