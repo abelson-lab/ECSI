@@ -1479,6 +1479,15 @@ window.onload = function() {
 };
 </script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -1523,6 +1532,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -1644,15 +1654,19 @@ library(Espresso)
 # Load other packages
 library(doParallel)   # processing samples in parallel
 library(magrittr)   # piping and readibility
-library(MafDb.gnomADex.r2.1.hs37d5) # MAF annotation - gnomAD exome hg19</code></pre>
+maf_database=&quot;MafDb.gnomADex.r2.1.hs37d5&quot; #If you are using a different MafDB annotation package (see &quot;Installation&quot;) change it here accordingly
+library(maf_database,character.only = TRUE)
+
+# Specify the genome
+genome = &quot;hg19&quot; #The package currently support hg19 and hg38. If you like to use a different species genome, please contact us.</code></pre>
 <div id="pre-processing" class="section level2">
 <h2>Pre-Processing</h2>
 <div id="get-sample-files" class="section level3">
 <h3>Get Sample Files</h3>
-<p>These files are VarScan pileup2cns outputs - see the paper’s methods section for information on how to generate those files.</p>
-<p><em>In the meantime we provide example files on github of 35 patients where we will call mutations in AML-associated hotspots</em></p>
+<p>These files are VarScan pileup2cns outputs - see the paper’s methods section (PMID: 33298453) for information on how to generate those files.</p>
+<p><em>In this example we provide files for 35 patients to call mutations in AML-associated hotspots</em></p>
 <pre class="r"><code>dir.create(&quot;example_data&quot;)</code></pre>
-<pre><code>## Warning in dir.create(&quot;example_data&quot;): 'example_data' already exists</code></pre>
+<pre><code>## Warning in dir.create(&quot;example_data&quot;): &#39;example_data&#39; already exists</code></pre>
 <pre class="r"><code>download.file(url=&quot;https://raw.githubusercontent.com/abelson-lab/Espresso_paper/master/example_data/example_35pts_pileup2cnsINFO_allPositions.zip&quot;,
               destfile = &quot;example_data/example_patients.zip&quot;)
 unzip(&quot;example_data/example_patients.zip&quot;, exdir = &quot;example_data&quot;, overwrite = TRUE)</code></pre>
@@ -1679,7 +1693,7 @@ As real mutations in our data are likely to occur at these hotspots, we will exc
 If you have no hotspot mutations that you wish to exclude from flagged allele generation and error model generation, feel free to skip this step.</p>
 <p><em>We’ve posted example data on github that you can download - heme malignancies from COSMIC</em></p>
 <pre class="r"><code>dir.create(&quot;example_data&quot;)</code></pre>
-<pre><code>## Warning in dir.create(&quot;example_data&quot;): 'example_data' already exists</code></pre>
+<pre><code>## Warning in dir.create(&quot;example_data&quot;): &#39;example_data&#39; already exists</code></pre>
 <pre class="r"><code>download.file(url = &quot;https://raw.githubusercontent.com/abelson-lab/Espresso_paper/master/heme_COSMIC/COSMIC_heme_freq10.txt&quot;, 
               destfile = &quot;example_data/COSMIC_heme_freq10.txt&quot;)
 
@@ -1687,12 +1701,10 @@ download.file(url = &quot;https://raw.githubusercontent.com/abelson-lab/Espresso
               destfile = &quot;example_data/COSMIC_heme_freq3.txt&quot;)</code></pre>
 <p>Now load the files using <em>load_recurrent_mutations</em></p>
 <pre class="r"><code># blood cancer mutations from COSMIC observed over 10 times
-  # these will be filtered out from model generation
-hemeCOSMIC_10 &lt;- load_recurrent_mutations(&quot;example_data/COSMIC_heme_freq10.txt&quot;, genome = &quot;hg19&quot;)
+  hemeCOSMIC_10 &lt;- load_recurrent_mutations(&quot;example_data/COSMIC_heme_freq10.txt&quot;, genome = &quot;hg19&quot;) # In this example those alleles will be filtered out from model generation
 
 # blood cancer mutations from COSMIC observed over 3 times
-  # these will be filtered out from flagged alleles function
-hemeCOSMIC_3 &lt;- load_recurrent_mutations(&quot;example_data/COSMIC_heme_freq3.txt&quot;, genome = &quot;hg19&quot;)
+hemeCOSMIC_3 &lt;- load_recurrent_mutations(&quot;example_data/COSMIC_heme_freq3.txt&quot;, genome = &quot;hg19&quot;) # these will be filtered out from the output of the flagged alleles function (see below)
 
 hemeCOSMIC_3</code></pre>
 <pre><code>## VRanges object with 754 ranges and 0 metadata columns:
@@ -1733,100 +1745,7 @@ hemeCOSMIC_3</code></pre>
 Additionally, we are setting the <em>memory_saving</em> argument to FALSE in this case because we are only processing 40 samples.</p>
 <p>If you are processing &gt; 400 samples on a 16gb RAM device or &gt; 200 samples on a 8gb RAM device, we recommend setting <em>memory_saving = TRUE</em>.<br />
 This will employ an alternative method that consumes less memory but takes approximately twice as long to run.</p>
-<pre class="r"><code>flagged_alleles &lt;- get_flagged_alleles(sample_names, sample_paths, recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)</code></pre>
-<pre><code>## [1] &quot;ptx02&quot;
-## [1] &quot;ptx03&quot;
-## [1] &quot;ptx04&quot;
-## [1] &quot;ptx05&quot;
-## [1] &quot;ptx06&quot;
-## [1] &quot;ptx07&quot;
-## [1] &quot;ptx08&quot;
-## [1] &quot;ptx09&quot;
-## [1] &quot;ptx10&quot;
-## [1] &quot;ptx11&quot;
-## [1] &quot;ptx12&quot;
-## [1] &quot;ptx13&quot;
-## [1] &quot;ptx14&quot;
-## [1] &quot;ptx15&quot;
-## [1] &quot;ptx16&quot;
-## [1] &quot;ptx17&quot;
-## [1] &quot;ptx18&quot;
-## [1] &quot;ptx19&quot;
-## [1] &quot;ptx20&quot;
-## [1] &quot;ptx21&quot;
-## [1] &quot;ptx22&quot;
-## [1] &quot;ptx23&quot;
-## [1] &quot;ptx24&quot;
-## [1] &quot;ptx25&quot;
-## [1] &quot;ptx26&quot;
-## [1] &quot;ptx27&quot;
-## [1] &quot;ptx28&quot;
-## [1] &quot;ptx29&quot;
-## [1] &quot;ptx30&quot;
-## [1] &quot;ptx31&quot;
-## [1] &quot;ptx32&quot;
-## [1] &quot;ptx33&quot;
-## [1] &quot;ptx34&quot;
-## [1] &quot;ptx35&quot;
-##         99% 
-## 0.001469361 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 1817
-##       99.1% 
-## 0.001540296 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 1540
-##       99.2% 
-## 0.001629549 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 1293
-##      99.3% 
-## 0.00173913 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 1103
-##       99.4% 
-## 0.001894299 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 905
-##       99.5% 
-## 0.002111739 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 704
-##       99.6% 
-## 0.002440077 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 520
-##       99.7% 
-## 0.003066141 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 337
-##       99.8% 
-## 0.004355839 
-## [1] 1
-## [1] 2
-## [1] 2
-## [1] 211
-##      99.9% 
-## 0.00859409 
-## [1] 1
-## [1] 1
-## [1] 182</code></pre>
+<pre class="r"><code>flagged_alleles &lt;- get_flagged_alleles(sample_names, sample_paths, genome, recurrent_mutations = hemeCOSMIC_3, memory_saving = FALSE)</code></pre>
 <pre class="r"><code>flagged_alleles</code></pre>
 <pre><code>## VRanges object with 1834 ranges and 0 metadata columns:
 ##          seqnames    ranges strand         ref              alt     totalDepth
@@ -1866,7 +1785,7 @@ This will employ an alternative method that consumes less memory but takes appro
               destfile = &quot;example_data/hemeCOSMIC_hotspot_range.bed&quot;)
 
 # Get COSMIC hotspot range to call mutations in
-COSMIC_hotspot_range &lt;- load_bed(&quot;example_data/hemeCOSMIC_hotspot_range.bed&quot;, genome = &quot;hg19&quot;)
+COSMIC_hotspot_range &lt;- load_bed(&quot;example_data/hemeCOSMIC_hotspot_range.bed&quot;, genome)
 COSMIC_hotspot_range</code></pre>
 <pre><code>## GRanges object with 186 ranges and 0 metadata columns:
 ##         seqnames              ranges strand
@@ -1896,20 +1815,7 @@ Generally, the default trinucleotide context approach is the most versatile and 
 <p>Also note that we perform a key preprocessing step to minimize somatic mutation contamination of our error models. This is achieved in through the <em>filter_model_input</em> function where we remove flagged alleles, polymorphisms (MAF &gt; 0.001), clear private germline variants (VAF &gt; 0.05), low quality calls (MAPQ &lt; 59), and recurrent mutations identified in COSMIC. Additionally, the filter_model_input function also removes contextual outliers, which are non-reference alleles with an exceptionally high read count compared to the rest of the distribution.</p>
 <pre class="r"><code># Make cluster and start
 cl &lt;- makeCluster(4)
-clusterCall(cl, function(x) .libPaths(x), .libPaths()) # in case you are using a local library </code></pre>
-<pre><code>## [[1]]
-## [1] &quot;/Library/Frameworks/R.framework/Versions/3.6/Resources/library&quot;
-## 
-## [[2]]
-## [1] &quot;/Library/Frameworks/R.framework/Versions/3.6/Resources/library&quot;
-## 
-## [[3]]
-## [1] &quot;/Library/Frameworks/R.framework/Versions/3.6/Resources/library&quot;
-## 
-## [[4]]
-## [1] &quot;/Library/Frameworks/R.framework/Versions/3.6/Resources/library&quot;</code></pre>
-<pre class="r"><code>registerDoParallel(cl)
-
+registerDoParallel(cl)
 
 # initialize variant calls
 variant_calls &lt;- VRangesList()
@@ -1917,17 +1823,17 @@ variant_calls &lt;- VRangesList()
 # Try for all files
 for(i in 1:length(sample_paths)){
 
-# get sample name and path
-    samp_path &lt;- sample_paths[i]
-    samp_name &lt;- sample_names[i]
+  # get sample name and path
+  samp_path &lt;- sample_paths[i]
+  samp_name &lt;- sample_names[i]
 
-    print(samp_name)
+  print(samp_name)
 
-# get sample as VRanges and annotate with sequence context and MAF
-    samp &lt;- load_as_VRanges(samp_name, samp_path) %&gt;%
-    sequence_context(., genome = &quot;hg19&quot;, context = 3) %&gt;%
-        annotate_MAF(., MafDb.gnomADex.r2.1.hs37d5::MafDb.gnomADex.r2.1.hs37d5, genome = &quot;hg19&quot;)
-
+  # get sample as VRanges and annotate with sequence context and MAF
+  samp &lt;- load_as_VRanges(samp_name, samp_path, genome) %&gt;%
+    sequence_context(., genome, context = 3) %&gt;%
+    annotate_MAF(., maf_database, genome)
+  
 # use sample to generate the error models
     samp_models &lt;- samp %&gt;%
         filter_model_input(., flagged_alleles, MAF_cutoff = 0.001, VAF_cutoff = 0.05, 
@@ -1937,6 +1843,7 @@ for(i in 1:length(sample_paths)){
 # call variants using error models, and aggregate together
     variant_calls[[samp_name]] &lt;- samp %&gt;% 
         intersect_VRanges(., COSMIC_hotspot_range) %&gt;% # only keep positions within the hotspot range we want to call in
+      filter_MAPQ(MAPQ_cutoff = 59) %&gt;% 
         call_all_variants(., samp_models)
 
 # cleanup
@@ -2012,45 +1919,32 @@ variant_calls</code></pre>
 ##   [2239]          30146             22         ptx02                  |
 ##   [2240]          30252             16         ptx02                  |
 ##   [2241]          29942              3         ptx02                  |
-##                           VAF Qual1 Qual2 MapQual1 MapQual2 Reads1Plus
-##                     &lt;numeric&gt; &lt;Rle&gt; &lt;Rle&gt;    &lt;Rle&gt;    &lt;Rle&gt;  &lt;integer&gt;
-##      [1]  0.00032242463324198    37    37       60       60      34370
-##      [2] 0.000610291600303657    37    37       60       60      34131
-##      [3] 0.000342915076335878    37    37       60       60      34212
-##      [4] 0.000210090338845704    37    36       60       60      33746
-##      [5] 0.000178786930675368    37    37       60       60      34402
-##      ...                  ...   ...   ...      ...      ...        ...
-##   [2237] 6.60851176315094e-05    37    37       60       60      14806
-##   [2238] 0.000396157274437952    37    37       60       60      14873
-##   [2239] 0.000729249535932114    37    37       60       60      14988
-##   [2240] 0.000528611074402009    37    37       60       60      14854
-##   [2241]  0.00010018367006178    37    38       60       60      14412
-##          Reads1Minus Reads2Plus Reads2Minus FlankingSeqGroup       MAF   model
-##            &lt;integer&gt;  &lt;integer&gt;   &lt;integer&gt;      &lt;character&gt; &lt;numeric&gt;   &lt;Rle&gt;
-##      [1]       33841         11          11           T[GT]G      &lt;NA&gt; weibull
-##      [2]       33009         19          22           G[GA]C      &lt;NA&gt; weibull
-##      [3]       32837          4          19           G[CA]A      &lt;NA&gt; weibull
-##      [4]       32878          7           7           C[AG]C      &lt;NA&gt; weibull
-##      [5]       32705          9           3           A[CA]T      &lt;NA&gt; weibull
-##      ...         ...        ...         ...              ...       ...     ...
-##   [2237]       15456          1           1           A[AT]T      &lt;NA&gt; weibull
-##   [2238]       15406          8           4           A[TC]G      &lt;NA&gt; weibull
-##   [2239]       15158          0          22           T[GT]G      &lt;NA&gt; weibull
-##   [2240]       15398          8           8           G[GT]T      &lt;NA&gt; weibull
-##   [2241]       15530          1           2           G[TC]C      &lt;NA&gt; weibull
-##                model_Pvalue
-##                   &lt;numeric&gt;
-##      [1]  0.270168826744091
-##      [2] 0.0231740928102501
-##      [3]  0.235362995084958
-##      [4]  0.021551264566916
-##      [5]  0.410261959453041
-##      ...                ...
-##   [2237]  0.829613518916822
-##   [2238]  0.108559638570464
-##   [2239]  0.270168826744091
-##   [2240]  0.393673652776278
-##   [2241]  0.691357827789523
+##                  VAF Qual1 Qual2 MapQual1 MapQual2 Reads1Plus Reads1Minus
+##            &lt;numeric&gt; &lt;Rle&gt; &lt;Rle&gt;    &lt;Rle&gt;    &lt;Rle&gt;  &lt;integer&gt;   &lt;integer&gt;
+##      [1] 0.000322425    37    37       60       60      34370       33841
+##      [2] 0.000610292    37    37       60       60      34131       33009
+##      [3] 0.000342915    37    37       60       60      34212       32837
+##      [4] 0.000210090    37    36       60       60      33746       32878
+##      [5] 0.000178787    37    37       60       60      34402       32705
+##      ...         ...   ...   ...      ...      ...        ...         ...
+##   [2237] 6.60851e-05    37    37       60       60      14806       15456
+##   [2238] 3.96157e-04    37    37       60       60      14873       15406
+##   [2239] 7.29250e-04    37    37       60       60      14988       15158
+##   [2240] 5.28611e-04    37    37       60       60      14854       15398
+##   [2241] 1.00184e-04    37    38       60       60      14412       15530
+##          Reads2Plus Reads2Minus FlankingSeqGroup       MAF   model model_Pvalue
+##           &lt;integer&gt;   &lt;integer&gt;      &lt;character&gt; &lt;numeric&gt;   &lt;Rle&gt;    &lt;numeric&gt;
+##      [1]         11          11           T[GT]G        NA weibull    0.2701688
+##      [2]         19          22           G[GA]C        NA weibull    0.0231741
+##      [3]          4          19           G[CA]A        NA weibull    0.2353630
+##      [4]          7           7           C[AG]C        NA weibull    0.0215513
+##      [5]          9           3           A[CA]T        NA weibull    0.4102620
+##      ...        ...         ...              ...       ...     ...          ...
+##   [2237]          1           1           A[AT]T        NA weibull     0.829614
+##   [2238]          8           4           A[TC]G        NA weibull     0.108560
+##   [2239]          0          22           T[GT]G        NA weibull     0.270169
+##   [2240]          8           8           G[GT]T        NA weibull     0.393674
+##   [2241]          1           2           G[TC]C        NA weibull     0.691358
 ##   -------
 ##   seqinfo: 18 sequences from hg19 genome; no seqlengths
 ##   hardFilters: NULL
@@ -2095,54 +1989,53 @@ significant_calls</code></pre>
 ##   ptx35          26939          26118         ptx35                  |
 ##   ptx35          57130             39         ptx35                  |
 ##   ptx35          48119             27         ptx35                  |
-##                          VAF Qual1 Qual2 MapQual1 MapQual2 Reads1Plus
-##                    &lt;numeric&gt; &lt;Rle&gt; &lt;Rle&gt;    &lt;Rle&gt;    &lt;Rle&gt;  &lt;integer&gt;
-##   ptx03   0.0876308747499416    37    37       60       60      16604
-##   ptx03 0.000478011472275335    37    37       60       60      27489
-##   ptx03    0.497269705603039    37    37       60       60      12348
-##   ptx03  0.00229114595167765    37    37       60       60      25970
-##   ptx03 0.000468445022771633    37    38       60       60      20065
-##     ...                  ...   ...   ...      ...      ...        ...
-##   ptx33    0.491663854201822    37    37       60       60      15126
-##   ptx34  0.00122259352840492    37    37       60       60      23716
-##   ptx35    0.492263037864938    37    37       60       60      14643
-##   ptx35 0.000682187899036191    37    37       60       60      29267
-##   ptx35 0.000560794250820421    37    37       60       60      22886
-##         Reads1Minus Reads2Plus Reads2Minus FlankingSeqGroup       MAF   model
-##           &lt;integer&gt;  &lt;integer&gt;   &lt;integer&gt;      &lt;character&gt; &lt;numeric&gt;   &lt;Rle&gt;
-##   ptx03       18514       1617        1756           G[CT]G     2e-04 weibull
-##   ptx03       22695         24           0           T[AC]C      &lt;NA&gt; weibull
-##   ptx03       13062      12877       12257           C[CG]T      0.06 weibull
-##   ptx03       26721         43          78           G[TG]G      &lt;NA&gt; weibull
-##   ptx03       18342          8          10           G[CG]C      &lt;NA&gt; weibull
-##     ...         ...        ...         ...              ...       ...     ...
-##   ptx33       14998      14188       14948           C[GT]A     0.006 weibull
-##   ptx34       25300         28          32           T[GA]G     4e-06 weibull
-##   ptx35       12296      14050       12068           T[CT]C      0.02 weibull
-##   ptx35       27863         20          19           T[TG]G      &lt;NA&gt; weibull
-##   ptx35       25233         14          13           C[AC]C      &lt;NA&gt; weibull
-##                 model_Pvalue    corrected_pvalue
-##                    &lt;numeric&gt;           &lt;numeric&gt;
-##   ptx03                    0                   0
-##   ptx03 2.00315710685572e-08 0.00151322494166095
-##   ptx03                    0                   0
-##   ptx03                    0                   0
-##   ptx03 5.56194271750243e-08 0.00420160276765569
-##     ...                  ...                 ...
-##   ptx33                    0                   0
-##   ptx34 1.54923679551722e-07  0.0117032446006962
-##   ptx35                    0                   0
-##   ptx35 2.97735769372309e-08  0.0022491555489923
-##   ptx35 3.67123243694145e-07  0.0277332240751431
+##                 VAF Qual1 Qual2 MapQual1 MapQual2 Reads1Plus Reads1Minus
+##           &lt;numeric&gt; &lt;Rle&gt; &lt;Rle&gt;    &lt;Rle&gt;    &lt;Rle&gt;  &lt;integer&gt;   &lt;integer&gt;
+##   ptx03 0.087630875    37    37       60       60      16604       18514
+##   ptx03 0.000478011    37    37       60       60      27489       22695
+##   ptx03 0.497269706    37    37       60       60      12348       13062
+##   ptx03 0.002291146    37    37       60       60      25970       26721
+##   ptx03 0.000468445    37    38       60       60      20065       18342
+##     ...         ...   ...   ...      ...      ...        ...         ...
+##   ptx33 0.491663854    37    37       60       60      15126       14998
+##   ptx34 0.001222594    37    37       60       60      23716       25300
+##   ptx35 0.492263038    37    37       60       60      14643       12296
+##   ptx35 0.000682188    37    37       60       60      29267       27863
+##   ptx35 0.000560794    37    37       60       60      22886       25233
+##         Reads2Plus Reads2Minus FlankingSeqGroup       MAF   model model_Pvalue
+##          &lt;integer&gt;   &lt;integer&gt;      &lt;character&gt; &lt;numeric&gt;   &lt;Rle&gt;    &lt;numeric&gt;
+##   ptx03       1617        1756           G[CT]G     2e-04 weibull  0.00000e+00
+##   ptx03         24           0           T[AC]C        NA weibull  2.00316e-08
+##   ptx03      12877       12257           C[CG]T     6e-02 weibull  0.00000e+00
+##   ptx03         43          78           G[TG]G        NA weibull  0.00000e+00
+##   ptx03          8          10           G[CG]C        NA weibull  5.56194e-08
+##     ...        ...         ...              ...       ...     ...          ...
+##   ptx33      14188       14948           C[GT]A     6e-03 weibull  0.00000e+00
+##   ptx34         28          32           T[GA]G     4e-06 weibull  1.54924e-07
+##   ptx35      14050       12068           T[CT]C     2e-02 weibull  0.00000e+00
+##   ptx35         20          19           T[TG]G        NA weibull  2.97736e-08
+##   ptx35         14          13           C[AC]C        NA weibull  3.67123e-07
+##         corrected_pvalue
+##                &lt;numeric&gt;
+##   ptx03       0.00000000
+##   ptx03       0.00151310
+##   ptx03       0.00000000
+##   ptx03       0.00000000
+##   ptx03       0.00420127
+##     ...              ...
+##   ptx33       0.00000000
+##   ptx34       0.01170232
+##   ptx35       0.00000000
+##   ptx35       0.00224898
+##   ptx35       0.02773102
 ##   -------
 ##   seqinfo: 18 sequences from hg19 genome; no seqlengths
 ##   hardFilters: NULL</code></pre>
-<p>We also recommend inspecting the “model” column to ensure that error models were successfully generated for each context.<br />
-If too many of the models appear as “None” (not enough alt alleles to generate the model), consider restricting the nucleotide context from 5 to 3 or from 3 to 1, thus reducing the number of models generated per sample. If no model can be generated by Espresso for a context, the pvalue from varscan will be used.</p>
+<p>We also recommend inspecting the “model” column to ensure that error models were successfully generated for each trinucleotide context. In case that your varscan input contains indels the model type will indicate “None”. If a “None” model is indicated for a trinucleotide context it is possible that not enough alt alleles were present in the data to generate the model. In this case consider restricting the nucleotide context from 5 to 3 or from 3 to 1, thus reducing the number of models generated per sample yet including more data in each. If no model can be generated by Espresso for a context, the pvalue from varscan will be used.</p>
 </div>
 <div id="save-significant-calls-for-annotation" class="section level1">
 <h1>Save significant calls for annotation</h1>
-<p>Signficant calls can be converted into a dataframe for input into annovar or saved directly as a VCF file.</p>
+<p>Significant calls can be converted into a dataframe for input into annovar or saved directly as a VCF file.</p>
 <pre class="r"><code>significant_calls_df &lt;- significant_calls %&gt;% 
   tidyr::as_tibble() %&gt;% 
   dplyr::select(-width, -strand, -totalDepth) %&gt;% 
@@ -2168,21 +2061,21 @@ significant_calls_df %&gt;% head() %&gt;% print()</code></pre>
   VariantAnnotation::asVCF() %&gt;% 
   VariantAnnotation::writeVcf(&quot;espresso_calls.vcf&quot;)</code></pre>
 <p>Alternatively, we can annotate the significant calls through cellBase, which returns a nested dataframe with transcript-specific functional annotations.</p>
-<pre class="r"><code>anno &lt;- annotate_variants(significant_calls, genome='hg19')
+<pre class="r"><code>anno &lt;- annotate_variants(significant_calls, genome=&#39;hg19&#39;)
 anno %&gt;% head()</code></pre>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["chromosome"],"name":[1],"type":["chr"],"align":["left"]},{"label":["start"],"name":[2],"type":["int"],"align":["right"]},{"label":["reference"],"name":[3],"type":["chr"],"align":["left"]},{"label":["alternate"],"name":[4],"type":["chr"],"align":["left"]},{"label":["id"],"name":[5],"type":["chr"],"align":["left"]},{"label":["hgvs"],"name":[6],"type":["list"],"align":["right"]},{"label":["displayConsequenceType"],"name":[7],"type":["chr"],"align":["left"]},{"label":["consequenceTypes"],"name":[8],"type":["list"],"align":["right"]},{"label":["populationFrequencies"],"name":[9],"type":["list"],"align":["right"]},{"label":["conservation"],"name":[10],"type":["list"],"align":["right"]},{"label":["geneExpression"],"name":[11],"type":["list"],"align":["right"]},{"label":["geneTraitAssociation"],"name":[12],"type":["list"],"align":["right"]},{"label":["geneDrugInteraction"],"name":[13],"type":["list"],"align":["right"]},{"label":["variantTraitAssociation"],"name":[14],"type":["data.frame"],"align":["right"]},{"label":["traitAssociation"],"name":[15],"type":["list"],"align":["right"]},{"label":["functionalScore"],"name":[16],"type":["list"],"align":["right"]},{"label":["cytoband"],"name":[17],"type":["list"],"align":["right"]}],"data":[{"1":"2","2":"25457242","3":"C","4":"T","5":"rs147001633","6":"<chr [5]>","7":"missense_variant","8":"<data.frame [11 × 12]>","9":"<data.frame [26 × 9]>","10":"<data.frame [3 × 2]>","11":"<data.frame [175 × 7]>","12":"<data.frame [107 × 8]>","13":"<list [0]>","14":"<data.frame [6 × 2]>","15":"<data.frame [90 × 13]>","16":"<data.frame [2 × 2]>","17":"<data.frame [1 × 5]>","_rn_":"1"},{"1":"2","2":"198267354","3":"A","4":"C","5":"NA","6":"<chr [1]>","7":"missense_variant","8":"<data.frame [6 × 12]>","9":"<NULL>","10":"<data.frame [3 × 2]>","11":"<data.frame [249 × 7]>","12":"<data.frame [105 × 8]>","13":"<list [0]>","14":"<data.frame [6 × 2]>","15":"<NULL>","16":"<data.frame [2 × 2]>","17":"<data.frame [1 × 5]>","_rn_":"2"},{"1":"4","2":"106155185","3":"C","4":"G","5":"rs12498609","6":"<chr [9]>","7":"missense_variant","8":"<data.frame [11 × 12]>","9":"<data.frame [69 × 9]>","10":"<data.frame [3 × 2]>","11":"<data.frame [95 × 7]>","12":"<data.frame [195 × 8]>","13":"<list [0]>","14":"<data.frame [6 × 2]>","15":"<data.frame [9 × 12]>","16":"<data.frame [2 × 2]>","17":"<data.frame [1 × 5]>","_rn_":"3"},{"1":"4","2":"106197290","3":"T","4":"G","5":"NA","6":"<chr [5]>","7":"missense_variant","8":"<data.frame [6 × 12]>","9":"<NULL>","10":"<data.frame [3 × 2]>","11":"<data.frame [95 × 7]>","12":"<data.frame [195 × 8]>","13":"<list [0]>","14":"<data.frame [6 × 2]>","15":"<NULL>","16":"<data.frame [2 × 2]>","17":"<data.frame [1 × 5]>","_rn_":"4"},{"1":"17","2":"7578449","3":"C","4":"G","5":"TP53_g.12469G>C","6":"<chr [13]>","7":"missense_variant","8":"<data.frame [18 × 12]>","9":"<NULL>","10":"<data.frame [3 × 2]>","11":"<data.frame [236 × 7]>","12":"<data.frame [1,569 × 8]>","13":"<data.frame [7 × 5]>","14":"<data.frame [6 × 2]>","15":"<data.frame [1 × 10]>","16":"<data.frame [2 × 2]>","17":"<data.frame [1 × 5]>","_rn_":"5"},{"1":"4","2":"106193878","3":"T","4":"A","5":"NA","6":"<chr [5]>","7":"missense_variant","8":"<data.frame [6 × 12]>","9":"<NULL>","10":"<data.frame [3 × 2]>","11":"<data.frame [95 × 7]>","12":"<data.frame [195 × 8]>","13":"<list [0]>","14":"<data.frame [6 × 2]>","15":"<NULL>","16":"<data.frame [2 × 2]>","17":"<data.frame [1 × 5]>","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["chromosome"],"name":[1],"type":["chr"],"align":["left"]},{"label":["start"],"name":[2],"type":["int"],"align":["right"]},{"label":["reference"],"name":[3],"type":["chr"],"align":["left"]},{"label":["alternate"],"name":[4],"type":["chr"],"align":["left"]},{"label":["id"],"name":[5],"type":["chr"],"align":["left"]},{"label":["hgvs"],"name":[6],"type":["list"],"align":["right"]},{"label":["displayConsequenceType"],"name":[7],"type":["chr"],"align":["left"]},{"label":["consequenceTypes"],"name":[8],"type":["list"],"align":["right"]},{"label":["populationFrequencies"],"name":[9],"type":["list"],"align":["right"]},{"label":["conservation"],"name":[10],"type":["list"],"align":["right"]},{"label":["geneExpression"],"name":[11],"type":["list"],"align":["right"]},{"label":["geneTraitAssociation"],"name":[12],"type":["list"],"align":["right"]},{"label":["geneDrugInteraction"],"name":[13],"type":["list"],"align":["right"]},{"label":["variantTraitAssociation"],"name":[14],"type":["df[,2]"],"align":["right"]},{"label":["traitAssociation"],"name":[15],"type":["list"],"align":["right"]},{"label":["functionalScore"],"name":[16],"type":["list"],"align":["right"]},{"label":["cytoband"],"name":[17],"type":["list"],"align":["right"]}],"data":[{"1":"2","2":"25457242","3":"C","4":"T","5":"rs147001633","6":"<chr [5]>","7":"missense_variant","8":"<df[,12] [11 × 12]>","9":"<df[,9] [26 × 9]>","10":"<df[,2] [3 × 2]>","11":"<df[,7] [175 × 7]>","12":"<df[,8] [107 × 8]>","13":"<list [0]>","14":"<df[,2] [6 × 2]>","15":"<df[,13] [90 × 13]>","16":"<df[,2] [2 × 2]>","17":"<df[,5] [1 × 5]>","_rn_":"1"},{"1":"2","2":"198267354","3":"A","4":"C","5":"NA","6":"<chr [1]>","7":"missense_variant","8":"<df[,12] [6 × 12]>","9":"<NULL>","10":"<df[,2] [3 × 2]>","11":"<df[,7] [249 × 7]>","12":"<df[,8] [105 × 8]>","13":"<list [0]>","14":"<df[,2] [6 × 2]>","15":"<NULL>","16":"<df[,2] [2 × 2]>","17":"<df[,5] [1 × 5]>","_rn_":"2"},{"1":"4","2":"106155185","3":"C","4":"G","5":"rs12498609","6":"<chr [9]>","7":"missense_variant","8":"<df[,12] [11 × 12]>","9":"<df[,9] [69 × 9]>","10":"<df[,2] [3 × 2]>","11":"<df[,7] [95 × 7]>","12":"<df[,8] [195 × 8]>","13":"<list [0]>","14":"<df[,2] [6 × 2]>","15":"<df[,12] [9 × 12]>","16":"<df[,2] [2 × 2]>","17":"<df[,5] [1 × 5]>","_rn_":"3"},{"1":"4","2":"106197290","3":"T","4":"G","5":"NA","6":"<chr [5]>","7":"missense_variant","8":"<df[,12] [6 × 12]>","9":"<NULL>","10":"<df[,2] [3 × 2]>","11":"<df[,7] [95 × 7]>","12":"<df[,8] [195 × 8]>","13":"<list [0]>","14":"<df[,2] [6 × 2]>","15":"<NULL>","16":"<df[,2] [2 × 2]>","17":"<df[,5] [1 × 5]>","_rn_":"4"},{"1":"17","2":"7578449","3":"C","4":"G","5":"TP53_g.12469G>C","6":"<chr [13]>","7":"missense_variant","8":"<df[,12] [18 × 12]>","9":"<NULL>","10":"<df[,2] [3 × 2]>","11":"<df[,7] [236 × 7]>","12":"<df[,8] [1,569 × 8]>","13":"<df[,5] [7 × 5]>","14":"<df[,2] [6 × 2]>","15":"<df[,10] [1 × 10]>","16":"<df[,2] [2 × 2]>","17":"<df[,5] [1 × 5]>","_rn_":"5"},{"1":"4","2":"106193878","3":"T","4":"A","5":"NA","6":"<chr [5]>","7":"missense_variant","8":"<df[,12] [6 × 12]>","9":"<NULL>","10":"<df[,2] [3 × 2]>","11":"<df[,7] [95 × 7]>","12":"<df[,8] [195 × 8]>","13":"<list [0]>","14":"<df[,2] [6 × 2]>","15":"<NULL>","16":"<df[,2] [2 × 2]>","17":"<df[,5] [1 × 5]>","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.6.3 (2020-02-29)
-## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-## Running under: macOS Catalina 10.15.4
+<pre><code>## R version 4.0.2 (2020-06-22)
+## Platform: x86_64-apple-darwin17.0 (64-bit)
+## Running under: macOS Catalina 10.15.6
 ## 
 ## Matrix products: default
-## BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
-## LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
+## BLAS:   /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRblas.dylib
+## LAPACK: /Library/Frameworks/R.framework/Versions/4.0/Resources/lib/libRlapack.dylib
 ## 
 ## locale:
 ## [1] en_CA.UTF-8/en_CA.UTF-8/en_CA.UTF-8/C/en_CA.UTF-8/en_CA.UTF-8
@@ -2192,60 +2085,62 @@ anno %&gt;% head()</code></pre>
 ## [8] methods   base     
 ## 
 ## other attached packages:
-##  [1] MafDb.gnomADex.r2.1.hs37d5_3.10.0 GenomicScores_1.10.0             
-##  [3] magrittr_1.5                      doParallel_1.0.15                
-##  [5] iterators_1.0.12                  foreach_1.5.0                    
-##  [7] Espresso_0.0.0.9000               VariantAnnotation_1.32.0         
-##  [9] Rsamtools_2.2.3                   Biostrings_2.54.0                
-## [11] XVector_0.26.0                    SummarizedExperiment_1.16.1      
-## [13] DelayedArray_0.12.3               BiocParallel_1.20.1              
-## [15] matrixStats_0.56.0                Biobase_2.46.0                   
-## [17] GenomicRanges_1.38.0              GenomeInfoDb_1.22.1              
-## [19] IRanges_2.20.2                    S4Vectors_0.24.4                 
-## [21] BiocGenerics_0.32.0              
+##  [1] MafDb.gnomADex.r2.1.hs37d5_3.10.0 GenomicScores_2.0.0              
+##  [3] magrittr_2.0.1                    doParallel_1.0.16                
+##  [5] iterators_1.0.13                  foreach_1.5.1                    
+##  [7] Espresso_0.0.0.9000               VariantAnnotation_1.34.0         
+##  [9] Rsamtools_2.4.0                   Biostrings_2.56.0                
+## [11] XVector_0.28.0                    SummarizedExperiment_1.18.2      
+## [13] DelayedArray_0.14.1               matrixStats_0.57.0               
+## [15] Biobase_2.48.0                    GenomicRanges_1.40.0             
+## [17] GenomeInfoDb_1.24.2               IRanges_2.22.2                   
+## [19] S4Vectors_0.26.1                  BiocGenerics_0.34.0              
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] bitops_1.0-6                      bit64_0.9-7                      
-##  [3] progress_1.2.2                    httr_1.4.1                       
-##  [5] tools_3.6.3                       utf8_1.1.4                       
-##  [7] R6_2.4.1                          DBI_1.1.0                        
-##  [9] tidyselect_1.0.0                  prettyunits_1.1.1                
-## [11] bit_1.1-15.2                      curl_4.3                         
-## [13] compiler_3.6.3                    cli_2.0.2                        
-## [15] rtracklayer_1.46.0                readr_1.3.1                      
-## [17] pbapply_1.4-2                     askpass_1.1                      
-## [19] rappdirs_0.3.1                    stringr_1.4.0                    
-## [21] digest_0.6.25                     cellbaseR_1.10.0                 
-## [23] R.utils_2.9.2                     rmarkdown_2.1                    
-## [25] BSgenome.Hsapiens.UCSC.hg19_1.4.0 pkgconfig_2.0.3                  
-## [27] htmltools_0.4.0                   dbplyr_1.4.3                     
-## [29] fastmap_1.0.1                     BSgenome_1.54.0                  
-## [31] rlang_0.4.6                       RSQLite_2.2.0                    
-## [33] shiny_1.4.0.2                     jsonlite_1.6.1                   
-## [35] R.oo_1.23.0                       dplyr_0.8.5                      
-## [37] RCurl_1.98-1.2                    GenomeInfoDbData_1.2.2           
-## [39] Matrix_1.2-18                     Rcpp_1.0.4.6                     
-## [41] fansi_0.4.1                       R.methodsS3_1.8.0                
-## [43] lifecycle_0.2.0                   stringi_1.4.6                    
-## [45] yaml_2.2.1                        zlibbioc_1.32.0                  
-## [47] plyr_1.8.6                        BiocFileCache_1.10.2             
-## [49] AnnotationHub_2.18.0              grid_3.6.3                       
-## [51] blob_1.2.1                        promises_1.1.0                   
-## [53] crayon_1.3.4                      lattice_0.20-41                  
-## [55] GenomicFeatures_1.38.2            hms_0.5.3                        
-## [57] knitr_1.28                        pillar_1.4.4                     
-## [59] codetools_0.2-16                  biomaRt_2.42.1                   
-## [61] XML_3.99-0.3                      glue_1.4.0                       
-## [63] BiocVersion_3.10.1                evaluate_0.14                    
-## [65] data.table_1.12.8                 BiocManager_1.30.10              
-## [67] vctrs_0.2.4                       httpuv_1.5.2                     
-## [69] openssl_1.4.1                     purrr_0.3.4                      
-## [71] tidyr_1.0.3                       assertthat_0.2.1                 
-## [73] xfun_0.13                         mime_0.9                         
-## [75] xtable_1.8-4                      later_1.0.0                      
-## [77] tibble_3.0.1                      GenomicAlignments_1.22.1         
-## [79] AnnotationDbi_1.48.0              memoise_1.1.0                    
-## [81] ellipsis_0.3.0                    interactiveDisplayBase_1.24.0</code></pre>
+##  [1] bitops_1.0-6                      bit64_4.0.5                      
+##  [3] progress_1.2.2                    httr_1.4.2                       
+##  [5] tools_4.0.2                       utf8_1.1.4                       
+##  [7] R6_2.5.0                          HDF5Array_1.16.1                 
+##  [9] DBI_1.1.1                         tidyselect_1.1.0                 
+## [11] prettyunits_1.1.1                 bit_4.0.4                        
+## [13] curl_4.3                          compiler_4.0.2                   
+## [15] cli_2.2.0                         xml2_1.3.2                       
+## [17] rtracklayer_1.48.0                readr_1.4.0                      
+## [19] pbapply_1.4-3                     askpass_1.1                      
+## [21] rappdirs_0.3.1                    stringr_1.4.0                    
+## [23] digest_0.6.27                     cellbaseR_1.12.0                 
+## [25] R.utils_2.10.1                    rmarkdown_2.6                    
+## [27] BSgenome.Hsapiens.UCSC.hg19_1.4.3 pkgconfig_2.0.3                  
+## [29] htmltools_0.5.1                   dbplyr_2.0.0                     
+## [31] fastmap_1.0.1                     BSgenome_1.56.0                  
+## [33] rlang_0.4.10                      RSQLite_2.2.2                    
+## [35] shiny_1.5.0                       generics_0.1.0                   
+## [37] jsonlite_1.7.2                    BiocParallel_1.22.0              
+## [39] R.oo_1.24.0                       dplyr_1.0.3                      
+## [41] RCurl_1.98-1.2                    GenomeInfoDbData_1.2.3           
+## [43] Matrix_1.3-2                      fansi_0.4.2                      
+## [45] Rcpp_1.0.6                        Rhdf5lib_1.10.1                  
+## [47] R.methodsS3_1.8.1                 lifecycle_0.2.0                  
+## [49] stringi_1.5.3                     yaml_2.2.1                       
+## [51] zlibbioc_1.34.0                   plyr_1.8.6                       
+## [53] rhdf5_2.32.4                      BiocFileCache_1.12.1             
+## [55] AnnotationHub_2.20.2              grid_4.0.2                       
+## [57] blob_1.2.1                        promises_1.1.1                   
+## [59] crayon_1.3.4                      lattice_0.20-41                  
+## [61] GenomicFeatures_1.40.1            hms_1.0.0                        
+## [63] knitr_1.30                        pillar_1.4.7                     
+## [65] codetools_0.2-18                  biomaRt_2.44.4                   
+## [67] XML_3.99-0.5                      glue_1.4.2                       
+## [69] BiocVersion_3.11.1                evaluate_0.14                    
+## [71] data.table_1.13.6                 BiocManager_1.30.10              
+## [73] vctrs_0.3.6                       httpuv_1.5.5                     
+## [75] openssl_1.4.3                     purrr_0.3.4                      
+## [77] tidyr_1.1.2                       assertthat_0.2.1                 
+## [79] xfun_0.20                         mime_0.9                         
+## [81] xtable_1.8-4                      later_1.1.0.1                    
+## [83] tibble_3.0.5                      GenomicAlignments_1.24.0         
+## [85] AnnotationDbi_1.50.3              memoise_1.1.0                    
+## [87] ellipsis_0.3.1                    interactiveDisplayBase_1.26.3</code></pre>
 </div>
 
 
@@ -2257,7 +2152,7 @@ anno %&gt;% head()</code></pre>
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();

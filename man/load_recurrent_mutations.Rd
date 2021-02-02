@@ -4,12 +4,12 @@
 \alias{load_recurrent_mutations}
 \title{Load File with Recurrent Mutations to exclude}
 \usage{
-load_recurrent_mutations(file, genome = c("hg19", "hg38"))
+load_recurrent_mutations(file, genome)
 }
 \arguments{
 \item{file}{Location of file with recurrent mutations}
 
-\item{genome}{Reference genome to use, default is hg19}
+\item{genome}{Reference genome to use}
 }
 \value{
 This function returns a \code{VRanges} object including:
@@ -25,6 +25,6 @@ Loads in recurrent mutations from tab or comma-delimited file with four columns 
 }
 \examples{
 \dontrun{
-recurrent <- load_recurrent_mutations(file = "COSMIC_Heme_mutations_freq10.txt", genome = "hg19")
+recurrent <- load_recurrent_mutations(file = "COSMIC_Heme_mutations_freq10.txt", genome)
 }
 }

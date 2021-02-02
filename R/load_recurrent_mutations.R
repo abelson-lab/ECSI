@@ -3,11 +3,11 @@
 #' Loads in recurrent mutations from tab or comma-delimited file with four columns (Chr, Pos, Ref, Alt) and no header, presenting it as a VRanges file.
 #'
 #' @param file Location of file with recurrent mutations
-#' @param genome Reference genome to use, default is hg19
+#' @param genome Reference genome to use
 #' @export
 #' @examples
 #' \dontrun{
-#' recurrent <- load_recurrent_mutations(file = "COSMIC_Heme_mutations_freq10.txt", genome = "hg19")
+#' recurrent <- load_recurrent_mutations(file = "COSMIC_Heme_mutations_freq10.txt", genome)
 #' }
 #' @return This function returns a \code{VRanges} object including:
 #' \itemize{
@@ -18,10 +18,7 @@
 #' }
 
 load_recurrent_mutations <-
-function(file, genome = c("hg19", "hg38")) {
-
-  # Check that genome was specified by the user
-  if(length(genome) > 1){ stop("Need to specify genome, either hg19 or hg38.") }
+function(file, genome) {
 
   # load as datatable (automatic handling of headers and tab/comma delimiter)
   recurrent <- data.table::fread(file)

@@ -4,6 +4,7 @@
 #'
 #' @param sample_names Character vector with the names of the samples
 #' @param sample_paths Character vector with the paths of the samples
+#' @param genome The package currently support hg19 and hg38. If you like to use a different species genome, please contact us.
 #' @param recurrent_mutations \code{VRanges} object with chr, pos ref, alt of frequently mutated alleles to remove from model input. \code{GRanges} objects are also accepted, in which case filtering will occur by position.
 #' @param memory_saving Logical. Option to save memory if you have a lot of samples (e.g. >500 with a 16Gb RAM machine), but takes twice as long
 #' @param starting_percentile Lower VAF percentile to start looking for alleles to flag. Default is 99, but can use 95 if you want to flag more alleles (more conservative)
@@ -39,7 +40,7 @@
 #'	}
 
 get_flagged_alleles <-
-function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = FALSE, starting_percentile = 99, interval = 0.001, MAPQcutoff = 59){
+function(sample_names, sample_paths, genome, recurrent_mutations = NA, memory_saving = FALSE, starting_percentile = 99, interval = 0.001, MAPQcutoff = 59){
 
   alleles <- VariantAnnotation::VRanges()
 
@@ -52,12 +53,8 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
       samp_path <- sample_paths[i]
       samp_name <- sample_names[i]
 
-      # samp name
-      #samp_name <- substr(samp_path,4,12)
-      print(samp_name)
-
       # get sample as VRanges and annotate with sequence context and MAF
-      samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
+      samp <- load_as_VRanges(samp_name, samp_path, genome, metadata = TRUE) %>%
         filter_MAPQ(., MAPQ_cutoff = MAPQcutoff)
 
       # add any extra alleles from this sample to the alleles VRanges object
@@ -70,9 +67,20 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
       # add VAFs for this sample to alleles metadata
       S4Vectors::mcols(alleles)[BiocGenerics::match(samp, alleles), samp_name] = samp$VAF
       rm(samp, samp_alleles)
+
+      if(round(i/length(sample_paths),1) %in% seq(0.1,0.9,0.1)) {
+        system(paste0("printf '\\rFlag high-VAF alleles that appear in a significant number of samples within the input cohort  :  ",round(100*i/length(sample_paths)),"%%      '"))    }
+      if(i == length(sample_paths)) {
+        system(paste0("printf '\\rFlag high-VAF alleles that appear in a significant number of samples within the input cohort :  100%%'"))
+      }
     }
 
+    cat("")
+
     ### TAG THE FREQUENT SNPS
+    if(length(grep("chrchr",alleles@seqnames@values))>1){
+      alleles@seqnames@values=gsub("chrchr","chr",alleles@seqnames@values)
+    }
     flagged_alleles <- flag_alleles(alleles, starting_percentile = starting_percentile, interval = interval)
 
     ## Very different approach if memory_saving == TRUE
@@ -87,12 +95,8 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
       samp_path <- sample_paths[i]
       samp_name <- sample_names[i]
 
-      # samp name
-      #samp_name <- substr(samp_path,4,12)
-      print(samp_name)
-
       # get sample as VRanges and annotate with sequence context and MAF
-      samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
+      samp <- load_as_VRanges(samp_name, samp_path, genome, metadata = TRUE) %>%
         filter_MAPQ(., MAPQ_cutoff = MAPQcutoff)
 
       # add any extra alleles from this sample to the alleles VRanges object
@@ -105,7 +109,15 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
       # store vafs
       VAFs <- append(VAFs, samp$VAF)
       rm(samp, samp_name, samp_alleles)
+
+      if(round(i/length(sample_paths),1) %in% seq(0.1,0.9,0.1)) {
+        system(paste0("printf '\\rFlag high-VAF alleles that appear in a significant number of samples within the input cohort  :  ",round(100*i/length(sample_paths)),"%%      '"))    }
+      if(i == length(sample_paths)) {
+        system(paste0("printf '\\rFlag high-VAF alleles that appear in a significant number of samples within the input cohort :  100%%'"))
+      }
     }
+
+    cat("   Please wait...")
 
     ### now start flagging the alleles
     VAFlen=length(VAFs)   # length of all VAFs
@@ -124,12 +136,8 @@ function(sample_names, sample_paths, recurrent_mutations = NA, memory_saving = F
       samp_path <- sample_paths[i]
       samp_name <- sample_names[i]
 
-      # samp name
-      #samp_name <- substr(samp_path,4,12)
-      print(samp_name)
-
       # get sample as VRanges and annotate with sequence context and MAF
-      samp <- load_as_VRanges(samp_name, samp_path, metadata = TRUE) %>%
+      samp <- load_as_VRanges(samp_name, samp_path, genome, metadata = TRUE) %>%
         filter_MAPQ(., MAPQ_cutoff = 59)
 
       # iterate through quantiles and tally up

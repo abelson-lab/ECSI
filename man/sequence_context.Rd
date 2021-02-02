@@ -4,7 +4,7 @@
 \alias{sequence_context}
 \title{Sequence Context}
 \usage{
-sequence_context(sample, genome = c("hg19", "hg38"), context = 3)
+sequence_context(sample, genome, context = 3)
 }
 \arguments{
 \item{sample}{\code{VRanges} object of the varscan pileup2cns output}

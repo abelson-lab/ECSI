@@ -7,6 +7,7 @@
 get_flagged_alleles(
   sample_names,
   sample_paths,
+  genome,
   recurrent_mutations = NA,
   memory_saving = FALSE,
   starting_percentile = 99,

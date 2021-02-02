@@ -4,7 +4,7 @@
 \alias{annotate_MAF}
 \title{Annotate MAF}
 \usage{
-annotate_MAF(sample, MAF_database, genome = c("hg19", "hg38"))
+annotate_MAF(sample, MAF_database, genome)
 }
 \arguments{
 \item{sample}{\code{VRanges} object of the varscan pileup2cns output}

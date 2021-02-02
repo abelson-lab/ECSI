@@ -4,14 +4,14 @@
 \alias{load_as_VRanges}
 \title{Load as VRanges}
 \usage{
-load_as_VRanges(sample_name, sample_path, genome = "hg19", metadata = TRUE)
+load_as_VRanges(sample_name, sample_path, genome, metadata = TRUE)
 }
 \arguments{
 \item{sample_name}{Name of the sample}
 
 \item{sample_path}{Sample file location}
 
-\item{genome}{Reference genome to use, default is hg19}
+\item{genome}{Reference genome to use.}
 
 \item{metadata}{Logical. Whether to include metadata (VAF, quality scores, strand-specific counts)}
 }

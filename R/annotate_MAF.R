@@ -30,10 +30,8 @@
 # Check that MAF_database is a GScores object
 
 annotate_MAF <-
-  function(sample, MAF_database, genome = c("hg19", "hg38")){
+  function(sample, MAF_database, genome) {
 
-    # Check that genome was specified by the user
-    if(length(genome) > 1){ stop("Need to specify genome, either hg19 or hg38.") }
     # Check that input is VRanges
     if(class(sample) != "VRanges"){ stop('Input "sample" needs to be VRanges object') }
 
@@ -47,7 +45,7 @@ annotate_MAF <-
     }
 
     # Annotate MAF
-    sample_anno <- GenomicScores::gscores(MAF_database, sample)
+    sample_anno <- GenomicScores::gscores(get(MAF_database), sample)
     GenomeInfoDb::seqlevelsStyle(sample_anno) <- "UCSC"
     sample_anno$MAF <- sample_anno$AF; sample_anno$AF <- NULL
 

@@ -4,7 +4,7 @@
 #'
 #' @param sample_name Name of the sample
 #' @param sample_path Sample file location
-#' @param genome Reference genome to use, default is hg19
+#' @param genome Reference genome to use.
 #' @param metadata Logical. Whether to include metadata (VAF, quality scores, strand-specific counts)
 #' @importFrom dplyr "%>%"
 #' @export
@@ -26,7 +26,7 @@
 #'	}
 
 load_as_VRanges <-
-function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
+function(sample_name, sample_path, genome, metadata = TRUE) {
 
   # Load in as dataframe
   varscan_df <- data.table::fread(sample_path) %>%
@@ -36,7 +36,7 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
 
   # Convert to VRanges but without refDepth or altDepth
   varscan_output <- VariantAnnotation::VRanges(
-    seqnames = paste0("chr",varscan_df$Chrom),
+    if(length(grep("chr",varscan_df$Chrom))==0) {seqnames = paste0("chr",varscan_df$Chrom)} else {seqnames = varscan_df$Chrom} ,
     ranges = IRanges::IRanges(varscan_df$Position, varscan_df$Position),
     ref = varscan_df$Ref,
     alt = varscan_df$VarAllele,
@@ -51,7 +51,7 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
 
     # Convert to VRanges
     varscan_output <- VariantAnnotation::VRanges(
-      seqnames = paste0("chr",varscan_df$Chrom),
+      if(length(grep("chr",varscan_df$Chrom))==0) {seqnames = paste0("chr",varscan_df$Chrom)} else {seqnames = varscan_df$Chrom} ,
       ranges = IRanges::IRanges(varscan_df$Position, varscan_df$Position),
       ref = varscan_df$Ref,
       alt = varscan_df$VarAllele,
@@ -76,7 +76,7 @@ function(sample_name, sample_path, genome = "hg19", metadata = TRUE) {
   }
 
   # specify genome
-  GenomeInfoDb::genome(varscan_output) = genome    # for now, must be hg19
+  GenomeInfoDb::genome(varscan_output) = genome
 
   # clean up and remove dataframe
   rm(varscan_df)

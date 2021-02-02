@@ -36,8 +36,6 @@ function(variants, metadata = FALSE, starting_percentile = 99, interval = 0.001)
 
   # iterate through the quantiles
   for(i in 1:length(Q)) {
-    # show cutoff
-    print(Q[i])
     # get quantiles below this cutoff
     q = as.data.frame(Q[which(Q <= Q[i])])
     # save cutoff percentile
@@ -56,13 +54,10 @@ function(variants, metadata = FALSE, starting_percentile = 99, interval = 0.001)
 
     while (x > 0.05) {
       n = n + 1
-      print(n)
       x = stats::fisher.test(matrix(c(n, dim(vars)[2], sum(tab$Freq), varlen), ncol = 2), conf.int = TRUE, conf.level = 0.95)[[1]]
     }
 
-    print(n)
     index = which(tab$Freq > n)
-    print(length(index))
     line = append(line, as.numeric(as.character(tab$Var1[index])))
   }
 

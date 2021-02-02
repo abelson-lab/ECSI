@@ -49,6 +49,10 @@ function(sample, model='auto') {
   # create empty dataframe to store each flanking sequence group, the model used, and the estimated model parameters
   groups <- data.frame(FlankingSeqGroup=unique(sample$FlankingSeqGroup),model=NA,estimate1=NA,estimate2=NA)
 
+  # keeping only trinucleutide signatures in case that the varscan input include indels
+  idx=grep("[+]|-",groups$FlankingSeqGroup)
+  if(length(idx)>0){groups = groups[-idx,]}
+
   # auto select model
   if(model == "auto"){
     alt_tab <- table(VariantAnnotation::altDepth(sample))
@@ -57,7 +61,7 @@ function(sample, model='auto') {
   }
 
   # Generate models for each flanking sequence group
-  m <- foreach::foreach(i=1:dim(groups)[1], .combine='c', .packages = c("VariantAnnotation","fitdistrplus")) %dopar% {
+  m <- foreach::foreach(i=1:dim(groups)[1], .combine='c',.export=c("generate_model"), .packages = c("VariantAnnotation","fitdistrplus")) %dopar% {
     generate_model(i,sample,groups,model)
   }
 
